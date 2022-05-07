@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+      "moduleResolution": "Node",
+      "target": "es2017",
+      "lib": ["es2017"],
+      "strict": true,
+      "strictNullChecks": false,
+      "skipLibCheck" : true,
+      "typeRoots" : ["./mymodule"],
+      "types": ["panorama-types"],
+      "outDir": "./dist"
+    },
+    "include": [
+      "./src/**/*"
+    ],
+    "exclude": [
+      "node_modules",
+      "./dist/*"
+    ],
+  }

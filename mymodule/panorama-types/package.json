@@ -1,0 +1,26 @@
+{
+  "name": "dota2-fgui-types",
+  "version": "1.0.0",
+  "description": "TypeScript definitions for Dota 2 Panorama API",
+  "keywords": [
+    "dota",
+    "panorama",
+    "types",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "dg",
+  "files": [
+    "index.d.ts",
+    "normalized.d.ts",
+    "types/**/*.d.ts",
+    "transformer/mappings.json",
+    "transformer/index.{js,d.ts}"
+  ],
+  "dependencies": {
+    "tslib": "^2.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^3.0.0"
+  }
+}
