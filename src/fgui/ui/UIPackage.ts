@@ -78,6 +78,20 @@ export class UIPackage {
         _instById[pkg.path] = pkg;
     }
 
+    public static loadPackageWithArrayBuffer(pkgName: string, ab: ArrayBuffer){
+        let pkg: UIPackage = _instById[pkgName];
+        if (pkg) {
+            return;
+        }
+
+        pkg = new UIPackage();
+        pkg.loadPackage(new ByteBuffer(ab), pkgName);
+
+        _instById[pkg.id] = pkg;
+        _instByName[pkg.name] = pkg;
+        _instById[pkg.path] = pkg;
+    }
+
     public static removePackage(packageIdOrName: string): void {
         var pkg: UIPackage = _instById[packageIdOrName];
         if (!pkg)
