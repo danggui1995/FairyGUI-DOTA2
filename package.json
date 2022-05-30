@@ -3,8 +3,7 @@
         "@types/text-encoding": "0.0.36",
         "gulp": "^4.0.2",
         "rollup-plugin-node-resolve": "^5.2.0",
-        "typescript": "^4.5.4",
-        "webpack": "^5.0.0-beta.30"
+        "typescript": "^4.5.4"
     },
     "dependencies": {
         "gulp-clean": "^0.4.0",
@@ -14,9 +13,5 @@
         "rollup": "^2.61.1",
         "rollup-plugin-commonjs": "^10.1.0",
         "text-encoding": "^0.7.0"
-    },
-    "scripts": {
-        "build": "node --preserve-symlinks node_modules/webpack/bin/webpack.js --config webpack.config.js",
-        "dev": "node --preserve-symlinks node_modules/webpack/bin/webpack.js --config webpack.config.js --watch"
     }
 }
