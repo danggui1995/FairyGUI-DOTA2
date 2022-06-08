@@ -117,11 +117,11 @@ export class InputTextField extends UIElement {
         if (this._singleLine != value) {
             this._singleLine = value;
 
-            if (this._singleLine) {
-                this.nativePanel.style.whiteSpace = "nowrap";
-            } else {
-                this.nativePanel.style.whiteSpace = "normal";
-            }
+            // if (this._singleLine) {
+            //     this.nativePanel.style.whiteSpace = "nowrap";
+            // } else {
+            //     this.nativePanel.style.whiteSpace = "normal";
+            // }
         }
     }
 

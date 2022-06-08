@@ -348,11 +348,11 @@ export class TextField extends UIElement {
     }
 
     private updateWrapping(forceWrap?: boolean) {
-        if ((this._autoSize == AutoSizeType.Both || this._singleLine) && !forceWrap) {
-            this._label.style.whiteSpace = "nowrap";
-        }
-        else {
-            this._label.style.whiteSpace = "normal";
-        }
+        // if ((this._autoSize == AutoSizeType.Both || this._singleLine) && !forceWrap) {
+        //     this._label.style.whiteSpace = "nowrap";
+        // }
+        // else {
+        //     this._label.style.whiteSpace = "normal";
+        // }
     }
 }
