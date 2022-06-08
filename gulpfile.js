@@ -35,7 +35,7 @@ gulp.task("rollup", async function() {
         input: "build/FairyGUI.js",
         external: ['three'],
         output: {
-            file: 'dist/FairyGUI.js',
+            file: 'FairyGUI.js',
             format: 'esm',
             extend: true,
             name: 'fgui',
@@ -55,15 +55,20 @@ gulp.task("rollup", async function() {
 });
 
 gulp.task("uglify", function() {
-    return gulp.src("dist/FairyGUI.js")
-        // .pipe(rename({ suffix: '.min' }))
+    return gulp.src("FairyGUI.js")
         .pipe(uglify( /* options */ ))
-        .pipe(gulp.dest("dist/"));
+        .pipe(gulp.dest("build/"));
+});
+
+gulp.task("finalclean", function() {
+    return gulp.src("FairyGUI.js")
+        .pipe(clean('FairyGUI.js'));
 });
 
 gulp.task('build', gulp.series(
     gulp.parallel('buildJs'),
     gulp.parallel('rollup'),
     gulp.parallel('cleanJs'),
-    gulp.parallel('uglify')
+    gulp.parallel('uglify'),
+    gulp.parallel('finalclean')
 ))
