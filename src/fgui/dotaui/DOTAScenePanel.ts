@@ -166,9 +166,9 @@ export class DOTAScenePanel extends UIElement {
     {
         return this.scenePanel.SpawnHeroInScenePanelByHeroId(unknown1, unknown2, unknown3);
     }
-    public SetScenePanelToPlayerHero(unknown1: string, unknown2: number): boolean
+    public SetScenePanelToPlayerHero(heroName: string, player: PlayerID): boolean
     {
-        return this.scenePanel.SetScenePanelToPlayerHero(unknown1, unknown2);
+        return this.scenePanel.SetScenePanelToPlayerHero(heroName, player);
     }
     public SetScenePanelToLocalHero(heroId: HeroID): boolean
     {
@@ -186,10 +186,11 @@ export class DOTAScenePanel extends UIElement {
     {
         this.scenePanel.SetCustomPostProcessMaterial(material);
     }
-    public SpawnHeroInScenePanelByPlayerSlotWithFullBodyView(unknown1: string, unknown2: number): boolean
+    public SpawnHeroInScenePanelByPlayerSlotWithFullBodyView(heroName: string, player: PlayerID): boolean
     {
-        return this.scenePanel.SpawnHeroInScenePanelByPlayerSlotWithFullBodyView(unknown1, unknown2);
+        return this.scenePanel.SpawnHeroInScenePanelByPlayerSlotWithFullBodyView(heroName, player);
     }
+
     public LerpToCameraEntity(unknown1: string, unknown2: number): void
     {
         this.scenePanel.LerpToCameraEntity(unknown1, unknown2);

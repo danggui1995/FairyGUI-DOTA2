@@ -6,69 +6,6 @@ import { TextFormat } from "./TextFormat";
 import { Vec2 } from "../math/Vec2";
 import { Timers } from "../FairyGUI";
 
-
-class MeasureTup
-{
-    public span : Panel;
-    public label : LabelPanel;
-
-    constructor(panel : Panel)
-    {
-        this.span = panel;
-        this.label = panel.FindChild('Label') as LabelPanel;
-    }
-}
-
-//在main.xml有snippet可供加载   坑bV蛇，要下一帧才能知道大小
-class MeasurePool{
-    private static _poolItems : MeasureTup[] = [];
-    private static _index : number = 0;
-    private static maxCntInPool : number = 10;
-    private static needUpdate : boolean = true;
-
-    public static Get() : MeasureTup
-    {
-        if (this.needUpdate == true && this._poolItems.length > this.maxCntInPool)
-        {
-            this.needUpdate = false;
-            Timers.add(5, -1, this.CheckPool, this);
-        }
-        if (this._poolItems.length > 0)
-        {
-            var tup = this._poolItems.pop();
-            tup.span.visible = true;
-            return tup;
-        }
-        else
-        {
-            var panel = $.CreatePanel('Panel', $('#MeasureRoot'), "MeasurePool" + this._index);
-            panel.BLoadLayoutSnippet("TextMeasure");
-            var tup : MeasureTup = new MeasureTup(panel);
-            this._index ++;
-            return tup;
-        }
-    }
-
-    private static CheckPool()
-    {
-        var len = this._poolItems.length;
-        if (len > this.maxCntInPool)
-        {
-            for(var i = len; i >= this.maxCntInPool; i--)
-            {
-                var nativePanel = this._poolItems.pop();
-                nativePanel.span.DeleteAsync(0);
-            }
-        }
-    }
-
-    public static Back(tup : MeasureTup)
-    {
-        this._poolItems.push(tup);
-        tup.span.visible = false;
-    }
-}
-
 export class TextField extends UIElement {
     protected _textFormat: TextFormat;
     protected _text: string;
@@ -81,10 +18,6 @@ export class TextField extends UIElement {
     protected _layoutStyleChanged: boolean = true;
     protected _label : LabelPanel;
 
-    private _scheduleId : boolean;
-    private _lastHeight : number;
-    private _measureTup : MeasureTup;
-
     public _label_style_fontSize : any;
     public _label_style_fontFamily : any;
     public _label_style_lineHeight : any;
@@ -93,7 +26,7 @@ export class TextField extends UIElement {
     public _label_style_textDecoration : any;
     public _label_style_textAlign : any;
 
-    private _measureCount : number = 0;
+    private _needCheckSize = true;
 
     constructor() {
         super();
@@ -101,7 +34,6 @@ export class TextField extends UIElement {
         this._textFormat = new TextFormat();
         this._text = "";
         this._textSize = new Vec2();
-        this._scheduleId = false;
     }
 
     public init() {
@@ -109,39 +41,27 @@ export class TextField extends UIElement {
 
         this._label = $.CreatePanel( "Label", $('#HiddenRoot'), this.$owner.panelName);
         this.nativePanel = this._label;
+
+        Timers.add(5, -1, this.OnUpdate, this);
     }
 
-    private clearPool()
+    public OnUpdate()
     {
-        this._scheduleId = false;
-        MeasurePool.Back(this._measureTup);
-        this._measureTup = null;
-        Timers.remove(this.delayUpdate, this);
+        if (this._needCheckSize == false)
+        {
+            return;
+        }
+        if (this._label.IsSizeValid())
+        {
+            this._needCheckSize = false;
+            this.delayUpdate();
+        }
     }
 
     private delayUpdate() : void
     {
-        if (!this._label.IsValid()) {
-            this.clearPool();
-            return;
-        }
-
-        this._measureCount ++ ;
-        if (this._measureCount > 3)
-        {
-            //超过3次就不继续了  防止死循环
-            this.clearPool();
-            return;
-        }
-        var height = Math.floor(this._measureTup.span.contentheight / this._measureTup.span.actualuiscale_y);
-        if (this._lastHeight == height)
-        {
-            return;
-        }
-
-        var width = this._measureTup.span.contentwidth / this._measureTup.span.actualuiscale_x;
-        this._lastHeight = height;
-        this.clearPool();
+        var height = Math.floor(this._label.contentheight / this._label.actualuiscale_y);
+        var width = Math.floor(this._label.contentwidth / this._label.actualuiscale_x);
         
         this._textSize.set(width, height);
         if (this._autoSize == AutoSizeType.Both) {
@@ -256,31 +176,7 @@ export class TextField extends UIElement {
             this._label.style.width = this._maxWidth + "px";
             this.updateWrapping(true);
         }
-
-        if (this._measureTup == null)
-        {
-            this._measureTup = MeasurePool.Get();
-        }
-
-        this._measureTup.label.style.overflow = this._label.style.overflow;
-        this._measureTup.label.style.textOverflow = this._label.style.textOverflow;
-        this._measureTup.label.style.width = this._label.style.width;
-        // this._measureTup.label.style.height = this._label.style.height;
-        this._measureTup.label.style.fontSize = this._label_style_fontSize;
-        this._measureTup.label.style.fontFamily = this._label_style_fontFamily;
-        this._measureTup.label.style.lineHeight = this._label_style_lineHeight;
-        this._measureTup.label.style.fontWeight = this._label_style_fontWeight;
-        this._measureTup.label.style.fontStyle = this._label_style_fontStyle;
-        this._measureTup.label.style.textDecoration = this._label_style_textDecoration;
-        this._measureTup.label.style.textAlign = this._label_style_textAlign;
-        this._measureTup.label.html = this._html;
-        this._measureTup.label.text = this.text;
-        
-        if (this._scheduleId == false)
-        {
-            this._scheduleId = true;
-            Timers.add(50, -1, this.delayUpdate, this);
-        }
+        this._needCheckSize = true;
     }
 
     public get autoSize(): AutoSizeType {

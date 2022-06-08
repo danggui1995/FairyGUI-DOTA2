@@ -348,7 +348,7 @@ interface CDOTA_PanoramaScript_CustomNetTables {
     >(
         pTableName: TName,
         pKeyName: K,
-    ): NetworkedData<T[K]>;
+    ): NetworkedData<T[K]> | null;
 
     /**
      * Get all values from a custom net table
@@ -1394,6 +1394,8 @@ interface CScriptBindingPR_Game {
 
     IsGamePaused(): boolean;
 
+    IsDayTime(): boolean;
+
     IsInToolsMode(): boolean;
 
     IsInBanPhase(): boolean;
@@ -1584,6 +1586,8 @@ interface CScriptBindingPR_Game {
     SetDotaRefractHeroes(bEnabled: boolean): void;
 
     FinishGame(): void;
+
+    LeaveCurrentGame(): void;
 
     Disconnect(): void;
 
@@ -1806,12 +1810,24 @@ interface DollarStatic {
     Language(): string;
     Localize(token: string, parent?: PanelBase): string;
     LocalizePlural(token: string, value: number, parent?: PanelBase): string;
+    RegisterEventHandler(
+        event: 'DragStart',
+        parent: PanelBase,
+        handler: (panelID: string, settings: DragSettings) => boolean,
+    ): void;
+    RegisterEventHandler(
+        event: 'DragEnd' | 'DragDrop' | 'DragEnter' | 'DragLeave',
+        parent: PanelBase,
+        handler: (panelID: string, dragged: Panel) => boolean,
+    ): void;
     RegisterEventHandler(event: string, parent: PanelBase, handler: (...args: any[]) => void): void;
     RegisterForUnhandledEvent(event: string, handler: (...args: any[]) => void): UnhandledEventListenerID;
     UnregisterForUnhandledEvent(event: string, handle: UnhandledEventListenerID): void;
     Each<T>(list: T[], callback: (item: T, index: number) => void): void;
     Each<T>(map: { [key: string]: T }, callback: (value: T, key: string) => void): void;
     Each<T>(map: { [key: number]: T }, callback: (value: T, key: number) => void): void;
+
+    /** @deprecated */
     AsyncWebRequest(url: string, data: AsyncWebRequestData): void;
 
     /**
@@ -1860,6 +1876,13 @@ interface AsyncWebRequestData {
     success?(response: any, result: 'success', statusText: string): void;
     error?(data: AsyncWebRequestResponse, result: 'error', statusText: string): void;
     complete?(data: AsyncWebRequestResponse, result: 'success' | 'error'): void;
+}
+
+interface DragSettings {
+    displayPanel: Panel;
+    offsetX: number;
+    offsetY: number;
+    removePositionBeforeDrop: boolean;
 }
 
 declare var GameEvents: CDOTA_PanoramaScript_GameEvents;

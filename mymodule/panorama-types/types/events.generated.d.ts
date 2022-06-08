@@ -19,14 +19,11 @@ interface GameEventDeclarations {
      * A server console var has changed.
      */
     server_cvar: ServerCvarEvent;
-    server_addban: ServerAddbanEvent;
-    server_removeban: ServerRemovebanEvent;
     player_activate: PlayerActivateEvent;
     /**
      * Player has sent final message in the connection sequence.
      */
     player_connect_full: PlayerConnectFullEvent;
-    player_say: PlayerSayEvent;
     player_full_update: PlayerFullUpdateEvent;
     /**
      * A new client connected.
@@ -47,19 +44,7 @@ interface GameEventDeclarations {
     player_team: PlayerTeamEvent;
     local_player_team: object;
     player_changename: PlayerChangenameEvent;
-    /**
-     * A player changed his class.
-     */
-    player_class: PlayerClassEvent;
-    /**
-     * Players scores changed.
-     */
-    player_score: PlayerScoreEvent;
     player_hurt: PlayerHurtEvent;
-    /**
-     * Player shoot his weapon.
-     */
-    player_shoot: PlayerShootEvent;
     /**
      * A public player chat.
      */
@@ -150,9 +135,7 @@ interface GameEventDeclarations {
     break_breakable: BreakBreakableEvent;
     break_prop: BreakPropEvent;
     entity_killed: EntityKilledEvent;
-    door_open: DoorOpenEvent;
     door_close: DoorCloseEvent;
-    door_unlocked: DoorUnlockedEvent;
     vote_started: VoteStartedEvent;
     vote_failed: VoteFailedEvent;
     vote_passed: VotePassedEvent;
@@ -163,7 +146,8 @@ interface GameEventDeclarations {
     achievement_earned: AchievementEarnedEvent;
     achievement_write_failed: object;
     bonus_updated: BonusUpdatedEvent;
-    spec_target_updated: object;
+    spec_target_updated: SpecTargetUpdatedEvent;
+    spec_mode_updated: SpecModeUpdatedEvent;
     entity_visible: EntityVisibleEvent;
     /**
      * The player pressed use but a use entity wasn't found.
@@ -211,6 +195,7 @@ interface GameEventDeclarations {
     dota_item_gifted: DotaItemGiftedEvent;
     dota_item_placed_in_neutral_stash: DotaItemPlacedInNeutralStashEvent;
     dota_rune_pickup: DotaRunePickupEvent;
+    dota_rune_deny: DotaRuneDenyEvent;
     dota_ward_killed: DotaWardKilledEvent;
     dota_rune_spotted: DotaRuneSpottedEvent;
     dota_item_spotted: DotaItemSpottedEvent;
@@ -246,6 +231,8 @@ interface GameEventDeclarations {
     dota_estimated_match_duration_changed: object;
     dota_hero_ability_points_changed: object;
     dota_item_picked_up: DotaItemPickedUpEvent;
+    dota_item_physical_destroyed: DotaItemPhysicalDestroyedEvent;
+    dota_neutral_item_sent_to_stash: DotaNeutralItemSentToStashEvent;
     dota_inventory_item_changed: DotaInventoryItemChangedEvent;
     dota_ability_changed: DotaAbilityChangedEvent;
     dota_spectator_talent_changed: DotaSpectatorTalentChangedEvent;
@@ -297,6 +284,7 @@ interface GameEventDeclarations {
     dota_holdout_revive_complete: DotaHoldoutReviveCompleteEvent;
     dota_holdout_revive_eliminated: DotaHoldoutReviveEliminatedEvent;
     dota_player_killed: DotaPlayerKilledEvent;
+    dota_assist_earned: DotaAssistEarnedEvent;
     bindpanel_open: object;
     bindpanel_close: object;
     keybind_changed: object;
@@ -392,7 +380,6 @@ interface GameEventDeclarations {
     community_cached_names_updated: object;
     spec_item_pickup: SpecItemPickupEvent;
     spec_aegis_reclaim_time: SpecAegisReclaimTimeEvent;
-    account_trophies_changed: AccountTrophiesChangedEvent;
     account_all_hero_challenge_changed: AccountAllHeroChallengeChangedEvent;
     team_showcase_ui_update: TeamShowcaseUiUpdateEvent;
     dota_match_signout: object;
@@ -408,6 +395,7 @@ interface GameEventDeclarations {
     custom_game_lobby_list_updated: object;
     friend_lobby_list_updated: object;
     dota_team_player_list_changed: object;
+    dota_player_connection_state_changed: object;
     dota_player_details_changed: object;
     player_profile_stats_updated: PlayerProfileStatsUpdatedEvent;
     custom_game_player_count_updated: CustomGamePlayerCountUpdatedEvent;
@@ -441,7 +429,9 @@ interface GameEventDeclarations {
     dota_creature_gained_level: DotaCreatureGainedLevelEvent;
     dota_hero_teleport_to_unit: DotaHeroTeleportToUnitEvent;
     dota_neutral_creep_camp_cleared: DotaNeutralCreepCampClearedEvent;
+    dota_watch_tower_captured: DotaWatchTowerCapturedEvent;
     npc_spawned: NpcSpawnedEvent;
+    npc_spawn_finished: NpcSpawnFinishedEvent;
     npc_replaced: NpcReplacedEvent;
     entity_hurt: EntityHurtEvent;
     /**
@@ -544,52 +534,6 @@ interface ServerCvarEvent {
     cvarvalue: string;
 }
 
-interface ServerAddbanEvent {
-    /**
-     * Player name.
-     */
-    name: string;
-    /**
-     * User ID on server.
-     */
-    userid: EntityIndex;
-    /**
-     * Player network (i.e steam) id.
-     */
-    networkid: string;
-    /**
-     * IP address.
-     */
-    ip: string;
-    /**
-     * Length of the ban.
-     */
-    duration: string;
-    /**
-     * Banned by...
-     */
-    by: string;
-    /**
-     * Whether the player was also kicked.
-     */
-    kicked: 0 | 1;
-}
-
-interface ServerRemovebanEvent {
-    /**
-     * Player network (i.e steam) id.
-     */
-    networkid: string;
-    /**
-     * IP address.
-     */
-    ip: string;
-    /**
-     * Removed by...
-     */
-    by: string;
-}
-
 interface PlayerActivateEvent {
     /**
      * User ID on server.
@@ -602,25 +546,11 @@ interface PlayerActivateEvent {
  */
 interface PlayerConnectFullEvent {
     /**
-     * User ID on server.
+     * User ID on server (unique on server).
      */
     userid: EntityIndex;
-    /**
-     * Player slot (entity index-1).
-     */
     index: number;
     PlayerID: PlayerID;
-}
-
-interface PlayerSayEvent {
-    /**
-     * User ID on server.
-     */
-    userid: EntityIndex;
-    /**
-     * The say text.
-     */
-    text: string;
 }
 
 interface PlayerFullUpdateEvent {
@@ -643,10 +573,6 @@ interface PlayerConnectEvent {
      */
     name: string;
     /**
-     * Player slot (entity index-1).
-     */
-    index: number;
-    /**
      * User ID on server (unique on server).
      */
     userid: EntityIndex;
@@ -655,10 +581,18 @@ interface PlayerConnectEvent {
      */
     networkid: string;
     /**
+     * Steam id.
+     */
+    xuid: number;
+    /**
      * Ip:port.
      */
     address: string;
     bot: 0 | 1;
+    /**
+     * Player slot (entity index-1).
+     */
+    index: number;
 }
 
 /**
@@ -681,6 +615,10 @@ interface PlayerDisconnectEvent {
      * Player network (i.e steam) id.
      */
     networkid: string;
+    /**
+     * Steam id.
+     */
+    xuid: number;
     PlayerID: PlayerID;
 }
 
@@ -693,17 +631,13 @@ interface PlayerInfoEvent {
      */
     name: string;
     /**
-     * Player slot (entity index-1).
-     */
-    index: number;
-    /**
      * User ID on server (unique on server).
      */
     userid: EntityIndex;
     /**
      * Player network (i.e steam) id.
      */
-    networkid: string;
+    steamid: number;
     /**
      * True if player is a AI bot.
      */
@@ -714,16 +648,10 @@ interface PlayerInfoEvent {
  * Player spawned in game.
  */
 interface PlayerSpawnEvent {
-    /**
-     * User ID on server.
-     */
     userid: EntityIndex;
 }
 
 interface PlayerTeamEvent {
-    /**
-     * User ID on server.
-     */
     userid: EntityIndex;
     /**
      * Team id.
@@ -737,14 +665,6 @@ interface PlayerTeamEvent {
      * Team change because player disconnects.
      */
     disconnect: 0 | 1;
-    /**
-     * True if the player was auto assigned to the team.
-     */
-    autoteam: 0 | 1;
-    /**
-     * If true wont print the team join messages.
-     */
-    silent: 0 | 1;
     name: string;
     isbot: 0 | 1;
 }
@@ -764,73 +684,19 @@ interface PlayerChangenameEvent {
     newname: string;
 }
 
-/**
- * A player changed his class.
- */
-interface PlayerClassEvent {
-    /**
-     * User ID on server.
-     */
-    userid: EntityIndex;
-    /**
-     * New player class / model.
-     */
-    class: string;
-}
-
-/**
- * Players scores changed.
- */
-interface PlayerScoreEvent {
-    /**
-     * User ID on server.
-     */
-    userid: EntityIndex;
-    /**
-     * # of kills.
-     */
-    kills: number;
-    /**
-     * # of deaths.
-     */
-    deaths: number;
-    /**
-     * Total game score.
-     */
-    score: number;
-}
-
 interface PlayerHurtEvent {
     /**
-     * Player index who was hurt.
+     * Player who was hurt.
      */
     userid: EntityIndex;
     /**
-     * Player index who attacked.
+     * Player who attacked.
      */
-    attacker: number;
+    attacker: EntityIndex;
     /**
      * Remaining health points.
      */
     health: number;
-}
-
-/**
- * Player shoot his weapon.
- */
-interface PlayerShootEvent {
-    /**
-     * User ID on server.
-     */
-    userid: EntityIndex;
-    /**
-     * Weapon ID.
-     */
-    weapon: number;
-    /**
-     * Weapon mode.
-     */
-    mode: number;
 }
 
 /**
@@ -916,7 +782,7 @@ interface HltvCameramanEvent {
     /**
      * Camera man entity index.
      */
-    index: number;
+    userid: EntityIndex;
 }
 
 /**
@@ -926,11 +792,11 @@ interface HltvChaseEvent {
     /**
      * Primary traget index.
      */
-    target1: number;
+    target1: EntityIndex;
     /**
      * Secondary traget index or 0.
      */
-    target2: number;
+    target2: EntityIndex;
     /**
      * Camera distance.
      */
@@ -968,7 +834,7 @@ interface HltvRankCameraEvent {
     /**
      * Best/closest target entity.
      */
-    target: number;
+    target: EntityIndex;
 }
 
 /**
@@ -976,9 +842,9 @@ interface HltvRankCameraEvent {
  */
 interface HltvRankEntityEvent {
     /**
-     * Entity index.
+     * Player slot.
      */
-    index: number;
+    userid: EntityIndex;
     /**
      * Ranking, how interesting is this entity to view.
      */
@@ -986,7 +852,7 @@ interface HltvRankEntityEvent {
     /**
      * Best/closest target entity.
      */
-    target: number;
+    target: EntityIndex;
 }
 
 /**
@@ -1007,9 +873,9 @@ interface HltvFixedEvent {
     offset: number;
     fov: number;
     /**
-     * Follow this entity or 0.
+     * Follow this player.
      */
-    target: number;
+    target: EntityIndex;
 }
 
 /**
@@ -1185,7 +1051,7 @@ interface PlayerDeathEvent {
     /**
      * User ID who killed.
      */
-    attacker: number;
+    attacker: EntityIndex;
 }
 
 interface PlayerFootstepEvent {
@@ -1223,35 +1089,9 @@ interface EntityKilledEvent {
     damagebits: number;
 }
 
-interface DoorOpenEvent {
-    /**
-     * Who opened the door.
-     */
-    userid: EntityIndex;
-    /**
-     * Is the door a checkpoint door.
-     */
-    checkpoint: 0 | 1;
-    /**
-     * Was the door closed when it started opening?
-     */
-    closed: 0 | 1;
-}
-
 interface DoorCloseEvent {
     /**
      * Who closed the door.
-     */
-    userid: EntityIndex;
-    /**
-     * Is the door a checkpoint door.
-     */
-    checkpoint: 0 | 1;
-}
-
-interface DoorUnlockedEvent {
-    /**
-     * Who opened the door.
      */
     userid: EntityIndex;
     /**
@@ -1334,7 +1174,7 @@ interface AchievementEarnedEvent {
     /**
      * Entindex of the player.
      */
-    player: number;
+    player: EntityIndex;
     /**
      * Achievement ID.
      */
@@ -1346,6 +1186,24 @@ interface BonusUpdatedEvent {
     numbronze: number;
     numsilver: number;
     numgold: number;
+}
+
+interface SpecTargetUpdatedEvent {
+    /**
+     * Spectating player.
+     */
+    userid: EntityIndex;
+    /**
+     * Ehandle of the target.
+     */
+    target: EntityIndex;
+}
+
+interface SpecModeUpdatedEvent {
+    /**
+     * Spectating player.
+     */
+    userid: EntityIndex;
 }
 
 interface EntityVisibleEvent {
@@ -1372,7 +1230,7 @@ interface EntityVisibleEvent {
  */
 interface PlayerUseMissEvent {
     /**
-     * Userid of user.
+     * Playerslot of user.
      */
     userid: EntityIndex;
 }
@@ -1448,7 +1306,7 @@ interface InstructorServerHintCreateEvent {
      */
     hint_target: number;
     /**
-     * Userid id of the activator.
+     * Playerslot of the activator.
      */
     hint_activator_userid: EntityIndex;
     /**
@@ -1709,6 +1567,11 @@ interface DotaRunePickupEvent {
     bounty_amount: number;
 }
 
+interface DotaRuneDenyEvent {
+    userid: EntityIndex;
+    rune: number;
+}
+
 interface DotaWardKilledEvent {
     userid: EntityIndex;
     type: number;
@@ -1831,6 +1694,19 @@ interface DotaItemPickedUpEvent {
     HeroEntityIndex: EntityIndex;
 }
 
+interface DotaItemPhysicalDestroyedEvent {
+    itemname: string;
+    PlayerID: PlayerID;
+    ItemEntityIndex: EntityIndex;
+    HeroEntityIndex: EntityIndex;
+}
+
+interface DotaNeutralItemSentToStashEvent {
+    player_id: PlayerID;
+    itemname: string;
+    item_entindex: EntityIndex;
+}
+
 interface DotaInventoryItemChangedEvent {
     entityIndex: EntityIndex;
 }
@@ -1845,7 +1721,12 @@ interface DotaSpectatorTalentChangedEvent {
 }
 
 interface DotaInventoryItemAddedEvent {
+    item_slot: number;
+    inventory_player_id: PlayerID;
     itemname: string;
+    item_entindex: EntityIndex;
+    inventory_parent_entindex: EntityIndex;
+    is_courier: 0 | 1;
 }
 
 interface DotaLinkClickedEvent {
@@ -1987,6 +1868,7 @@ interface DotaNonPlayerBeginCastEvent {
 interface DotaAbilityChannelFinishedEvent {
     abilityname: string;
     interrupted: 0 | 1;
+    caster_entindex: EntityIndex;
 }
 
 interface DotaHoldoutReviveCompleteEvent {
@@ -2005,6 +1887,10 @@ interface DotaPlayerKilledEvent {
     PlayerID: PlayerID;
     HeroKill: 0 | 1;
     TowerKill: 0 | 1;
+}
+
+interface DotaAssistEarnedEvent {
+    entindex_hero: EntityIndex;
 }
 
 interface DotaItemPurchasedEvent {
@@ -2277,10 +2163,6 @@ interface SpecAegisReclaimTimeEvent {
     reclaim_time: number;
 }
 
-interface AccountTrophiesChangedEvent {
-    account_id: number;
-}
-
 interface AccountAllHeroChallengeChangedEvent {
     account_id: number;
 }
@@ -2438,9 +2320,14 @@ interface DotaCombatEventMessageEvent {
     player_id: number;
     player_id2: number;
     value: number;
+    value1: number;
+    value2: number;
+    value3: number;
     int_value: number;
+    int_value2: number;
     ability_name: string;
     locstring_value: string;
+    locstring_value2: string;
     string_replace_token: string;
 }
 
@@ -2474,7 +2361,18 @@ interface DotaNeutralCreepCampClearedEvent {
     killer_player_id: number;
 }
 
+interface DotaWatchTowerCapturedEvent {
+    entindex: EntityIndex;
+    team_number: number;
+    old_team_number: number;
+}
+
 interface NpcSpawnedEvent {
+    entindex: EntityIndex;
+    is_respawn: number;
+}
+
+interface NpcSpawnFinishedEvent {
     entindex: EntityIndex;
 }
 
