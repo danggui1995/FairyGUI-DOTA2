@@ -19,8 +19,5 @@
   ],
   "dependencies": {
     "tslib": "^2.0.0"
-  },
-  "peerDependencies": {
-    "typescript": "^3.0.0"
   }
 }
