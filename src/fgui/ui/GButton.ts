@@ -509,13 +509,9 @@ export class GButton extends GComponent {
     }
 
     private __click(): void {
-        // if (this._sound) {
-        //     var pi: PackageItem = UIPackage.getItemByURL(this._sound);
-        //     if (pi)
-        //         GRoot.playOneShotSound(pi.file);
-        //     else
-        //         GRoot.playOneShotSound(this._sound);
-        // }
+        if (this._sound) {
+            Game.EmitSound(this._sound);
+        }
 
         if (this._mode == ButtonMode.Check) {
             if (this._changeStateOnClick) {
