@@ -35,7 +35,6 @@ export { PackageItem } from "./ui/PackageItem";
 export { GObjectPool } from "./ui/GObjectPool";
 export { UIObjectFactory } from "./ui/UIObjectFactory";
 export { UIConfig } from "./ui/UIConfig";
-export { DragDropManager } from "./ui/DragDropManager";
 export { TranslationHelper } from "./ui/TranslationHelper";
 export { GearAnimation } from "./gears/GearAnimation";
 export { GearBase } from "./gears/GearBase";

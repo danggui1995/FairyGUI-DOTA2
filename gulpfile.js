@@ -60,6 +60,21 @@ gulp.task("uglify", function() {
         .pipe(gulp.dest("build/"));
 });
 
+gulp.task("movejs", function() {
+    return gulp.src("FairyGUI.js")
+        .pipe(gulp.dest('../panorama-fgui-types/fgui'));
+});
+
+gulp.task("move", function() {
+    return gulp.src("build/**")
+        .pipe(gulp.dest('../panorama-fgui-types/fgui'));
+});
+
+gulp.task("movetypes", function() {
+    return gulp.src("mymodule/panorama-types/types/**")
+        .pipe(gulp.dest('../panorama-fgui-types/types'));
+});
+
 gulp.task("finalclean", function() {
     return gulp.src("FairyGUI.js")
         .pipe(clean('FairyGUI.js'));
@@ -69,6 +84,9 @@ gulp.task('build', gulp.series(
     gulp.parallel('buildJs'),
     gulp.parallel('rollup'),
     gulp.parallel('cleanJs'),
-    gulp.parallel('uglify'),
+    // gulp.parallel('uglify'),
+    gulp.parallel('move'),
+    gulp.parallel('movejs'),
+    gulp.parallel('movetypes'),
     gulp.parallel('finalclean')
 ))
