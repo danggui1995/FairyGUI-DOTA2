@@ -1,5 +1,5 @@
 import { UIElement } from "../core/UIElement";
-import { Event, EventType } from "../event/Event";
+import { EventType } from "../event/Event";
 import { EventDispatcher } from "../event/EventDispatcher";
 import { GearAnimation } from "../gears/GearAnimation";
 import { GearBase } from "../gears/GearBase";
@@ -24,8 +24,6 @@ import { GTreeNode } from "./GTreeNode";
 import { PackageItem } from "./PackageItem";
 import { Relations } from "./Relations";
 import { UIConfig } from "./UIConfig";
-
-type EventHandler = () => void;
 
 export class GObject extends EventDispatcher {
     public data?: any;
@@ -55,7 +53,6 @@ export class GObject extends EventDispatcher {
     private _relations: Relations;
     private _group: GGroup;
     private _gears: GearBase[];
-    private _dragBounds: Rect;
 
     protected _element?: UIElement;
 
@@ -172,9 +169,6 @@ export class GObject extends EventDispatcher {
                     this._group.setBoundsChangedFlag(true);
                 this.emit.call(this, "pos_changed");
             }
-
-            if (GObject.draggingObject == this && !s_dragging)
-                this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
         }
     }
 
@@ -684,32 +678,6 @@ export class GObject extends EventDispatcher {
         }
     }
 
-    public get dragBounds(): Rect {
-        return this._dragBounds;
-    }
-
-    public set dragBounds(value: Rect) {
-        this._dragBounds = value;
-    }
-
-    public startDrag(pointerId?: number): void {
-        if (!this._element.onStage)
-            return;
-
-        if (pointerId == null)
-            pointerId = -1;
-
-        this.dragBegin(pointerId);
-    }
-
-    public stopDrag(): void {
-        this.dragEnd();
-    }
-
-    public get dragging(): boolean {
-        return GObject.draggingObject == this;
-    }
-
     public localToGlobal(ax?: number, ay?: number, result?: Vec2): Vec2 {
         ax = ax || 0;
         ay = ay || 0;
@@ -967,38 +935,52 @@ export class GObject extends EventDispatcher {
         }
     }
 
-    //drag support
-    //-------------------------------------------------------------------
-    private _dragStartPos: Vec2 = new Vec2();
-    private _dragTesting: boolean = false;
-
-    private initDrag(): void {
-        if (this._draggable) {
-            this.addEvent('onTouchBegin', this.__touchBegin, this);
-            this.addEvent('onTouchMove', this.__touchMove, this);
-            this.addEvent('onTouchEnd', this.__touchEnd, this);
-        }
-        else {
-            this.removeEvent('onTouchBegin', this.__touchBegin, this);
-            this.removeEvent('onTouchMove', this.__touchMove, this);
-            this.removeEvent('onTouchEnd', this.__touchEnd, this);
+    public GetNativePanel() : Panel
+    {
+        if (this.element != null)
+        {
+            return this.element.nativePanel;
         }
     }
 
-    private dragBegin(pointerId: number): void {
-        if (GObject.draggingObject) {
-            let tmp = GObject.draggingObject;
-            GObject.draggingObject.stopDrag();
-            GObject.draggingObject = null;
-            tmp.emit("drag_end");
+    //drag support
+    //-------------------------------------------------------------------
+
+    private initDrag(): void {
+        var nativePanel : Panel = this.GetNativePanel();
+        if (this._draggable) {
+            nativePanel.SetDraggable(true);
+            $.RegisterEventHandler( 'DragEnter', nativePanel, (panelID: string, dragged: Panel) => {
+                this.emit.call(this, 'drag_enter');
+                return true;
+            });
+            $.RegisterEventHandler( 'DragDrop', nativePanel,  (panelID: string, dragged: Panel) => {
+                this.emit.call(this, 'drag_drop');
+                return true;
+            });
+            $.RegisterEventHandler( 'DragLeave', nativePanel, (panelID: string, dragged: Panel) => {
+                this.emit.call(this, 'drag_leave');
+                return true;
+            });
+            $.RegisterEventHandler( 'DragStart', nativePanel, (panelID: string, settings: DragSettings) => {
+                settings.displayPanel = nativePanel;
+                GObject.draggingObject = this;
+                
+                this.data = settings;
+                this.emit.call(this, 'drag_start');
+                return true;
+            });
+            $.RegisterEventHandler( 'DragEnd', nativePanel, (panelID: string, dragged: Panel) => {
+                this.data = dragged;
+                this.emit.call(this, 'drag_end');
+                GObject.draggingObject = null;
+                return true;
+            });
         }
-
-        this._element.stage.getPointerPos(pointerId, sGlobalDragStart);
-        this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
-        this._dragTesting = false;
-
-        GObject.draggingObject = this;
-        this._element.stage.addPointerMonitor(pointerId, this);
+        else {
+            nativePanel.SetDraggable(false);
+            //TODO  不知道这里有没有释放绑定的function
+        }
     }
 
     public setPanelEvent(evt : PanelEvent, callback: any)
@@ -1042,7 +1024,7 @@ export class GObject extends EventDispatcher {
             }
             else
             {
-                this.element.nativePanel.SetPanelEvent(evt as any, this.emit.bind(caller, evt, caller));
+                this.element.nativePanel.SetPanelEvent(evt as PanelEvent, this.emit.bind(caller, evt, caller));
             }
         }
     }
@@ -1055,14 +1037,14 @@ export class GObject extends EventDispatcher {
     }
 
     //开放给外部的
-    public onEvent(evt : EventType, callback : Function, caller : any) : void
+    public onEvent(evt : EventType, callback : Function, caller ?: any) : void
     {
-        this.addEvent(evt, callback.bind(caller), this);
+        this.addEvent(evt, callback.bind(caller, this), this);
     }
 
-    public offEvent(evt : EventType, callback : Function, caller : any) : void
+    public offEvent(evt : EventType, callback : Function, caller ?: any) : void
     {
-        this.removeEvent(evt, callback.bind(caller), this);
+        this.removeEvent(evt, callback.bind(caller, this), this);
     }
 
     private callEvent(evt : EventType)
@@ -1123,13 +1105,6 @@ export class GObject extends EventDispatcher {
         }
     }
 
-    private dragEnd(): void {
-        if (GObject.draggingObject == this) {
-            this._dragTesting = false;
-            GObject.draggingObject = null;
-        }
-    }
-
     public SetNativeParent(panel : Panel): void{
         this._element.nativePanel.SetParent(panel);
     }
@@ -1139,78 +1114,6 @@ export class GObject extends EventDispatcher {
         if (this.parent)
             this.parent.removeChild(this);
         obj.addChild(this);
-    }
-
-    private __touchBegin(evt: Event): void {
-        let currentFocus = GRoot.inst.focus;
-        if (currentFocus && ('editable' in currentFocus) && currentFocus.editable) {
-            this._dragTesting = false;
-            return;
-        }
-
-        if (this._dragStartPos == null)
-            this._dragStartPos = new Vec2();
-        this._dragStartPos.set(evt.input.x, evt.input.y);
-        this._dragTesting = true;
-        // evt.capturePointer();
-    }
-
-    private __touchMove(evt: Event): void {
-        if (this._dragTesting && GObject.draggingObject != this) {
-            let sensitivity: number;
-            if (this._element.stage.touchScreen)
-                sensitivity = UIConfig.touchDragSensitivity;
-            else
-                sensitivity = UIConfig.clickDragSensitivity;
-            if (this._dragStartPos
-                && Math.abs(this._dragStartPos.x - evt.input.x) < sensitivity
-                && Math.abs(this._dragStartPos.y - evt.input.y) < sensitivity)
-                return;
-
-            this._dragTesting = false;
-            if (!this.emit.call(this, "drag_start", evt.input.pointerId))
-                this.dragBegin(evt.input.pointerId);
-        }
-
-        if (GObject.draggingObject == this) {
-            let xx = evt.input.x - sGlobalDragStart.x + sGlobalRect.x;
-            let yy = evt.input.y - sGlobalDragStart.y + sGlobalRect.y;
-
-            // if (this._dragBounds) {
-            //     let rect: Rect = (<GObject>GRoot.getInst(this)).localToGlobalRect(this._dragBounds.x, this._dragBounds.y,
-            //         this._dragBounds.width, this._dragBounds.height, s_rect);
-            //     if (xx < rect.x)
-            //         xx = rect.x;
-            //     else if (xx + sGlobalRect.width > rect.xMax) {
-            //         xx = rect.xMax - sGlobalRect.width;
-            //         if (xx < rect.x)
-            //             xx = rect.x;
-            //     }
-
-            //     if (yy < rect.y)
-            //         yy = rect.y;
-            //     else if (yy + sGlobalRect.height > rect.yMax) {
-            //         yy = rect.yMax - sGlobalRect.height;
-            //         if (yy < rect.y)
-            //             yy = rect.y;
-            //     }
-            // }
-
-            let pt = this.parent.globalToLocal(xx, yy, s_vec2);
-
-            s_dragging = true;
-            this.setPosition(Math.round(pt.x), Math.round(pt.y));
-            s_dragging = false;
-
-            this.emit.call(this, "drag_move");
-        }
-    }
-
-    private __touchEnd(): void {
-        if (GObject.draggingObject == this) {
-            GObject.draggingObject = null;
-            this.emit.call(this, "drag_end");
-        }
     }
 }
 
@@ -1226,11 +1129,6 @@ function createGear(owner: GObject, index: number): GearBase {
 }
 
 var s_vec2: Vec2 = new Vec2();
-var s_rect: Rect = new Rect();
-
-var sGlobalDragStart: Vec2 = new Vec2();
-var sGlobalRect: Rect = new Rect();
-var s_dragging: boolean;
 
 export var gInstanceCounter: number = 0;
 export var constructingDepth: { n: number } = { n: 0 };

@@ -23,7 +23,7 @@ https://www.fairygui.com/
 
 6.扩展dota2的原生组件：技能图标，物品图标，玩家头像，模型，特效等。
 
-<BR><BR>
-# Powerd By
+
+# Powered By
 <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/Rider_icon.png" alt="Rider logo." width=128px>
 <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/Rider.png" alt="Rider logo." width=256px>

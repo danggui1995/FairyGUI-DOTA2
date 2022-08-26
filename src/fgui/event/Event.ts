@@ -15,7 +15,7 @@ export type EventType =
     | "ontextentrychange"
     | "PopupMenuItemClick"
     | "focus_in" | "focus_out"
-    | "drag_start" | "drag_move" | "drag_end" | "drop"
+    | "drag_start" | "drag_end" | "drag_drop" | "drag_enter" | "drag_leave"
     | "scroll" | "scroll_end" | "pull_down_release" | "pull_up_release"
     | "click_item" | "click_link"
     | "onTouchBegin" | "onTouchMove" | "onTouchEnd" | "onMouseWheel"

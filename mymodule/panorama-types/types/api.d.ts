@@ -1648,6 +1648,8 @@ interface CScriptBindingPR_Game {
      * Registers a keybind that can be listened to with Game.AddCommand
      */
     CreateCustomKeyBind(keyName: string, commandName: string): void;
+
+    PlayDataDrivenCamera( pszCameraName : string ): void;
 }
 
 interface CPanoramaScript_SteamUGC {
