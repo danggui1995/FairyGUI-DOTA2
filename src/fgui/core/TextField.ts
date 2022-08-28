@@ -4,7 +4,6 @@ import { convertToHtmlColor } from "../utils/ToolSet";
 import { UIElement } from "./UIElement";
 import { TextFormat } from "./TextFormat";
 import { Vec2 } from "../math/Vec2";
-import { Timers } from "../FairyGUI";
 
 export class TextField extends UIElement {
     protected _textFormat: TextFormat;
@@ -17,16 +16,8 @@ export class TextField extends UIElement {
     protected _textSize: Vec2;
     protected _layoutStyleChanged: boolean = true;
     protected _label : LabelPanel;
-
-    public _label_style_fontSize : any;
-    public _label_style_fontFamily : any;
-    public _label_style_lineHeight : any;
-    public _label_style_fontWeight : any;
-    public _label_style_fontStyle : any;
-    public _label_style_textDecoration : any;
-    public _label_style_textAlign : any;
-
-    private _needCheckSize = true;
+    protected _container : Panel;
+    protected _delayUpdateFunc : any;
 
     constructor() {
         super();
@@ -34,57 +25,17 @@ export class TextField extends UIElement {
         this._textFormat = new TextFormat();
         this._text = "";
         this._textSize = new Vec2();
+        this._delayUpdateFunc = ()=>{
+            this.DelayUpdate();
+        };
     }
 
     public init() {
         super.init();
 
-        this._label = $.CreatePanel( "Label", $('#HiddenRoot'), this.$owner.panelName);
-        this.nativePanel = this._label;
-
-        Timers.add(5, -1, this.OnUpdate, this);
-    }
-
-    public OnUpdate()
-    {
-        if (this._needCheckSize == false)
-        {
-            return;
-        }
-        if (this._label.IsSizeValid())
-        {
-            this._needCheckSize = false;
-            this.delayUpdate();
-        }
-    }
-
-    private delayUpdate() : void
-    {
-        var height = Math.floor(this._label.contentheight / this._label.actualuiscale_y);
-        var width = Math.floor(this._label.contentwidth / this._label.actualuiscale_x);
-        
-        this._textSize.set(width, height);
-        if (this._autoSize == AutoSizeType.Both) {
-            this._contentRect.width = this._textSize.x;
-            this._contentRect.height = this._textSize.y;
-            if (this.$owner)
-                this.$owner.setSize(this._textSize.x, this._textSize.y);
-        }
-        else if (this._autoSize == AutoSizeType.Height) {
-            this._contentRect.height = this._textSize.y;
-            if (this.$owner)
-                this.$owner.height = this._textSize.y;
-        }
-
-        this._label.style.width = this._contentRect.width + "px";
-        if (this._textFormat.verticalAlign == "top")
-            this._label.style.paddingTop = "0px";
-        else if (this._textFormat.verticalAlign == "middle")
-            this._label.style.paddingTop = Math.max(0, Math.floor((this._contentRect.height - this._textSize.y) * 0.5)) + "px";
-        else
-            this._label.style.paddingTop = Math.max(0, this._contentRect.height - this._textSize.y) + "px";
-
-        this._updatingSize = false;
+        this._container = $.CreatePanel( "Panel", $('#HiddenRoot'), this.$owner.panelName);
+        this._label = $.CreatePanel( "Label", this._container, this.$owner.panelName);
+        this.nativePanel = this._container;
     }
 
     public get textFormat(): TextFormat {
@@ -97,21 +48,19 @@ export class TextField extends UIElement {
             fontName = UIConfig.defaultFont;
         this._label.style.color = convertToHtmlColor(this._textFormat.color);
 
-        this._label_style_fontSize = this._textFormat.size + "px";
-        this._label_style_fontFamily = fontName;
-        this._label_style_lineHeight = (this._textFormat.size + this._textFormat.lineSpacing) + "px";
-        this._label_style_fontWeight = this._textFormat.bold ? "bold" : "normal";
-        this._label_style_fontStyle = this._textFormat.italic ? "italic" : "normal";
-        this._label_style_textDecoration = this._textFormat.underline ? "underline" : "none";
-        this._label_style_textAlign = (this._textFormat.align == undefined) ? null : this._textFormat.align;// 对于中文和Localize的文本有效  直接设置一堆字符是不支持的
-
-        this._label.style.fontSize = this._label_style_fontSize;
-        this._label.style.fontFamily = this._label_style_fontFamily;
-        this._label.style.lineHeight = this._label_style_lineHeight;
-        this._label.style.fontWeight = this._label_style_fontWeight;
-        this._label.style.fontStyle = this._label_style_fontStyle;
-        this._label.style.textDecoration = this._label_style_textDecoration;
-        this._label.style.textAlign = this._label_style_textAlign;
+        this._label.style.fontSize = this._textFormat.size + "px";
+        this._label.style.fontFamily = fontName;
+        this._label.style.fontWeight = this._textFormat.bold ? "bold" : "normal";
+        this._label.style.fontStyle = this._textFormat.italic ? "italic" : "normal";
+        this._label.style.textDecoration = this._textFormat.underline ? "underline" : "none";
+        if (this._textFormat.align != undefined)
+        {
+            this._label.style.textAlign = this._textFormat.align;
+        }
+        if (this._textFormat.verticalAlign != undefined)
+        {
+            this._label.style.verticalAlign = this._textFormat.verticalAlign;
+        }
 
         // 其实不是正宗的描边
         if (this._textFormat.outline > 0)
@@ -176,7 +125,35 @@ export class TextField extends UIElement {
             this._label.style.width = this._maxWidth + "px";
             this.updateWrapping(true);
         }
-        this._needCheckSize = true;
+
+        $.Schedule(0.01, this._delayUpdateFunc);
+    }
+
+    public DelayUpdate(): void
+    {
+        if (!this._label.IsSizeValid())
+        {
+            $.Schedule(0.01, this._delayUpdateFunc);
+            return;
+        }
+        var height = Math.floor(this._label.contentheight / this._label.actualuiscale_y);
+        var width = Math.floor(this._label.contentwidth / this._label.actualuiscale_x);
+        
+        this._textSize.set(width, height);
+        if (this._autoSize == AutoSizeType.Both) {
+            this._contentRect.width = this._textSize.x;
+            this._contentRect.height = this._textSize.y;
+            if (this.$owner)
+                this.$owner.setSize(this._textSize.x, this._textSize.y);
+        }
+        else if (this._autoSize == AutoSizeType.Height) {
+            this._contentRect.height = this._textSize.y;
+            if (this.$owner)
+                this.$owner.height = this._textSize.y;
+        }
+
+        this._container.style.width = this._contentRect.width + "px";
+        this._updatingSize = false;
     }
 
     public get autoSize(): AutoSizeType {
@@ -190,20 +167,17 @@ export class TextField extends UIElement {
 
             if (this._autoSize == AutoSizeType.Both) {
                 this._label.style.width = null;
-                this._label.style.overflow = "noclip";
+                this._label.style.textOverflow = "noclip";
             }
             else if (this._autoSize == AutoSizeType.Height) {
-                this._label.style.overflow = "noclip";
+                this._label.style.textOverflow = "noclip";
             }
-            else
-                this._label.style.overflow = "clip";
-
-            if (this._autoSize == AutoSizeType.Ellipsis)
+            else if (this._autoSize == AutoSizeType.Ellipsis)
                 this._label.style.textOverflow = "ellipsis";
             else if(this._autoSize == AutoSizeType.Shrink)
                 this._label.style.textOverflow = "shrink";
             else
-                this._label.style.textOverflow = "clip";
+                this._label.style.textOverflow = null;
         }
     }
 
@@ -232,23 +206,12 @@ export class TextField extends UIElement {
         return this._textSize.x;
     }
 
-    protected onSizeChanged() {
-        super.onSizeChanged();
-
-        if (!this._updatingSize) {
-            if (this._autoSize != AutoSizeType.Both) {
-                this._label.style.maxWidth = this._contentRect.width + "px";
-                this._label.style.width = this._contentRect.width + "px";
-            }
-        }
-    }
-
     private updateWrapping(forceWrap?: boolean) {
-        // if ((this._autoSize == AutoSizeType.Both || this._singleLine) && !forceWrap) {
-        //     this._label.style.whiteSpace = "nowrap";
-        // }
-        // else {
-        //     this._label.style.whiteSpace = "normal";
-        // }
+        if ((this._autoSize == AutoSizeType.Both || this._singleLine) && !forceWrap) {
+            this._label.style.whiteSpace = "nowrap";
+        }
+        else {
+            this._label.style.whiteSpace = "normal";
+        }
     }
 }

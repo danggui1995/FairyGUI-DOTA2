@@ -631,7 +631,7 @@ interface VCSSStyleDeclaration {
      * text-overflow: shrink;
      *
      */
-    textOverflow: 'ellipsis' | 'clip' | 'shrink' | null;
+    textOverflow: 'ellipsis' | 'clip' | 'shrink' | 'noclip' | null;
 
     /**
      * Specifies text shadows.  The shadow shape will match the text the panel can generate,and this is only meaningful for labels.  Syntax takes horizontal offset pixels, vertical offset pixels,
