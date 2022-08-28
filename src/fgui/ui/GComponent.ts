@@ -1047,7 +1047,7 @@ export class GComponent extends GObject {
                     child.constructFromResource();
                 }
                 else
-                    child = $.UIObjectFactory.newObject(type);
+                    child = $.UIObjectFactory.newObject(type, null, ObjectType[type]);
             }
 
             child._underConstruct = true;

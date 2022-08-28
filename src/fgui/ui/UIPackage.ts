@@ -284,6 +284,8 @@ export class UIPackage {
                             pi.scale9Grid.top = sy;
                             pi.scale9Grid.right = pi.width - sx - sw;
                             pi.scale9Grid.bottom = pi.height - sy - sh;
+                            pi.scale9Grid.width = sw;
+                            pi.scale9Grid.height = sh;
 
                             pi.tileGridIndice = buffer.readInt();
                         }

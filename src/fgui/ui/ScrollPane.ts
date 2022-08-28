@@ -973,7 +973,7 @@ export class ScrollPane {
             this.updatePageController();
     }
 
-    private __touchBegin(evt: Event): void {
+    private __touchBegin(sender : GObject, evt: Event): void {
         if (!this._touchEffect)
             return;
 
@@ -999,7 +999,7 @@ export class ScrollPane {
         this._lastMoveTime = Game.Time() * 1000;
     }
 
-    private __touchMove(evt: Event): void {
+    private __touchMove(sender : GObject, evt: Event): void {
         
         if (!this._touchEffect || this.owner.isDisposed)
             return;
@@ -1277,7 +1277,7 @@ export class ScrollPane {
         this.startTween(2);
     }
 
-    private __mouseWheel(evt: Event): void {
+    private __mouseWheel(sender : GObject, evt: Event): void {
         if (!this._mouseWheelEnabled)
             return;
 
