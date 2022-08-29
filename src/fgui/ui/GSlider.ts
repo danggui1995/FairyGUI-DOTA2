@@ -1,4 +1,5 @@
 import { Event } from "../event/Event";
+import { ScrollPane } from "../FairyGUI";
 import { Vec2 } from "../math/Vec2";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { clamp, clamp01 } from "../utils/ToolSet";
@@ -183,9 +184,8 @@ export class GSlider extends GComponent {
         if (this._gripObject) {
             this.onEvent('onTouchBegin', this.__gripTouchBegin, this);
             this.onEvent('onTouchMove', this.__gripTouchMove, this);
+            this.onEvent('onTouchEnd', this.__gripTouchEnd, this);
         }
-
-        this.onEvent('onTouchBegin', this.__barTouchBegin, this);
     }
 
     protected handleSizeChanged(): void {
@@ -228,11 +228,23 @@ export class GSlider extends GComponent {
             this.globalToLocal(gpos[0], gpos[1], this._clickPos);
             this._clickPercent = clamp01((this._value - this._min) / (this._max - this._min));
         }
+        else
+        {
+            if (!GObject.draggingObject)
+            {
+                GObject.draggingObject = this;
+            }
+        }
     }
 
     private __gripTouchMove(): void {
         if (!this.canDrag)
             return;
+
+        if (ScrollPane.draggingPane || (GObject.draggingObject && GObject.draggingObject != this))
+        {
+            return;
+        }
         var gpos = GameUI.GetCursorPosition();
         var pt: Vec2 = this.globalToLocal(gpos[0], gpos[1], s_vec2);
         var deltaX: number = pt.x - this._clickPos.x;
@@ -249,23 +261,10 @@ export class GSlider extends GComponent {
         this.updateWithPercent(percent, true);
     }
 
-    private __barTouchBegin(): void {
-        if (!this.changeOnClick)
-            return;
-
-        var gpos = GameUI.GetCursorPosition();
-        var pt: Vec2 = this._gripObject.globalToLocal(gpos[0], gpos[1], s_vec2);
-        var percent: number = clamp01((this._value - this._min) / (this._max - this._min));
-        var delta: number = 0;
-        if (this._barObjectH)
-            delta = (pt.x - this._gripObject.width / 2) / this._barMaxWidth;
-        if (this._barObjectV)
-            delta = (pt.y - this._gripObject.height / 2) / this._barMaxHeight;
-
-        if (this._reverse)
-            percent -= delta;
-        else
-            percent += delta;
-        this.updateWithPercent(percent, true);
+    private __gripTouchEnd(): void {
+        if (GObject.draggingObject == this)
+        {
+            GObject.draggingObject = null;
+        }
     }
 }

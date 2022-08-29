@@ -11,21 +11,26 @@ export class GTreeNode {
     private _children: Array<GTreeNode>;
     private _expanded: boolean = false;
     private _level: number = 0;
+    private _indentLevel: number = 0;
+    private _addIndent?: number;
     private _tree: GTree;
     private _cell: GComponent;
     private _indentObj: GObject;
-    private _resURL: string;
+    private _resURL?: string;
     private _leafController: Controller;
     private _isFolder: boolean;
 
-    public onExpanded?: () => void;
+    public onExpanded?: (expand: boolean) => void;
 
     /** @internal */
     public _cellFromPool?: boolean;
 
-    constructor(isFolder?: boolean, resURL?: string) {
+    constructor(isFolder?: boolean, resURL?: string, addIndent?: number) {
         this._isFolder = isFolder;
-        this._resURL = resURL;
+        if (resURL)
+            this._resURL = resURL;
+        if (addIndent)
+            this._addIndent = addIndent;
         this._children = [];
     }
 
@@ -98,32 +103,46 @@ export class GTreeNode {
     }
 
     public set cell(value: GComponent) {
-        if (this._cell)
+        if (this._cell) {
             this._cell._treeNode = null;
+
+            let cc = this._cell.getController("expanded");
+            if (cc)
+                cc.off("status_changed", this.__expandedStateChanged, this);
+
+            let btn = this._cell.getChild("expandButton");
+            if (btn)
+                btn.off("click", this.__clickExpandButton, this);
+
+            this._cell.off("pointer_down", this.__cellMouseDown, this);
+        }
 
         this._cell = value;
         this._cellFromPool = false;
-        if (!this._cell)
-            return;
 
-        this._cell._treeNode = this;
+        if (this._cell) {
+            this._cell._treeNode = this;
 
-        this._indentObj = this._cell.getChild("indent");
-        if (this._tree && this._indentObj)
-            this._indentObj.width = (this._level - 1) * this._tree.indent;
+            this._indentObj = this._cell.getChild("indent");
+            if (this._tree && this._indentObj)
+                this._indentObj.width = Math.max(this._indentLevel - 1, 0) * this._tree.indent;
 
-        var cc: Controller;
-        cc = this._cell.getController("expanded");
-        if (cc) {
-            cc.on.call(cc, "status_changed", this.__expandedStateChanged, this);
-            cc.selectedIndex = this.expanded ? 1 : 0;
+            let cc = this._cell.getController("expanded");
+            if (cc) {
+                cc.on("status_changed", this.__expandedStateChanged, this);
+                cc.selectedIndex = this.expanded ? 1 : 0;
+            }
+
+            let btn = this._cell.getChild("expandButton");
+            if (btn)
+                btn.on("click", this.__clickExpandButton, this);
+
+            this._leafController = this._cell.getController("leaf");
+            if (this._leafController)
+                this._leafController.selectedIndex = this.isFolder ? 0 : 1;
+
+            this._cell.on("pointer_down", this.__cellMouseDown, this);
         }
-
-        this._leafController = this._cell.getController("leaf");
-        if (this._leafController)
-            this._leafController.selectedIndex = this.isFolder ? 0 : 1;
-
-        this._cell.onEvent("onTouchBegin", this.__cellMouseDown, this);
     }
 
     public createCell() {
@@ -171,6 +190,7 @@ export class GTreeNode {
 
                 child._parent = this;
                 child._level = this._level + 1;
+                child._indentLevel = this._indentLevel + 1 + (child._addIndent != null ? child._addIndent : 0);
                 child._setTree(this._tree);
                 if (this._tree && this == this._tree.rootNode || this._cell && this._cell.parent && this._expanded)
                     this._tree._afterInserted(child);
@@ -315,7 +335,7 @@ export class GTreeNode {
         this._tree = value;
 
         if (this._tree && this._indentObj)
-            this._indentObj.width = (this._level - 1) * this._tree.indent;
+            this._indentObj.width = Math.max(this._indentLevel - 1, 0) * this._tree.indent;
 
         if (this._tree && this._tree.treeNodeWillExpand && this._expanded)
             this._tree.treeNodeWillExpand(this, true);
@@ -324,6 +344,7 @@ export class GTreeNode {
         for (var i: number = 0; i < cnt; i++) {
             var node: GTreeNode = this._children[i];
             node._level = this._level + 1;
+            node._indentLevel = this._indentLevel + 1 + (node._addIndent != null ? node._addIndent : 0);
             node._setTree(value);
         }
     }
@@ -336,5 +357,10 @@ export class GTreeNode {
     private __cellMouseDown(evt: Event): void {
         if (this._tree && this.isFolder)
             this._tree._expandedStatusInEvt = this._expanded;
+    }
+
+    private __clickExpandButton(evt: Event): void {
+        //dont set selection if click on the expand button
+        // evt.stopPropagation();
     }
 }

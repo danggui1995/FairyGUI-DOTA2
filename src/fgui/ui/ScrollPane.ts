@@ -8,9 +8,8 @@ import { ByteBuffer } from "../utils/ByteBuffer";
 import { Timers } from "../utils/Timers";
 import { clamp, clamp01, lerp } from "../utils/ToolSet";
 import { Controller } from "./Controller";
-import { ScrollBarDisplayType, ScrollType } from "./FieldTypes";
+import { ListLayoutType, ScrollBarDisplayType, ScrollType } from "./FieldTypes";
 import { GComponent } from "./GComponent";
-import { GList } from "./GList";
 import { GObject } from "./GObject";
 import { GScrollBar } from "./GScrollBar";
 import { Margin } from "../math/Margin";
@@ -78,6 +77,10 @@ export class ScrollPane {
     private _refreshEventDispatching: boolean;
     private _dragged: boolean;
 
+    private _hover : boolean;
+    private _lastAutoScroll?: number;
+    private _autoScrollThresold?: number;
+
     private _tweening: number;
     private _tweenTime: Vec2;
     private _tweenDuration: Vec2;
@@ -97,6 +100,7 @@ export class ScrollPane {
         this._maskContainer = new UIElement();
         this._maskContainer.$owner = owner;
         this._maskContainer.initElement();
+        this._maskContainer.opaque = false;
         
         this._owner.element.addChild(this._maskContainer);
 
@@ -183,7 +187,7 @@ export class ScrollPane {
                 if (res) {
                     this._vtScrollBar = <GScrollBar>(UIPackage.createObjectFromURL(res));
                     if (!this._vtScrollBar)
-                        throw "cannot create scrollbar} from " + res;
+                        throw "cannot create scrollbar from " + res;
                     this._vtScrollBar.setScrollPane(this, true);
                     this._owner.element.addChild(this._vtScrollBar.element);
                 }
@@ -193,7 +197,7 @@ export class ScrollPane {
                 if (res) {
                     this._hzScrollBar = <GScrollBar>(UIPackage.createObjectFromURL(res));
                     if (!this._hzScrollBar)
-                        throw "cannot create scrollbar} from " + res;
+                        throw "cannot create scrollbar from " + res;
                     this._hzScrollBar.setScrollPane(this, false);
                     this._owner.element.addChild(this._hzScrollBar.element);
                 }
@@ -206,6 +210,9 @@ export class ScrollPane {
                     this._vtScrollBar.element.visible = false;
                 if (this._hzScrollBar)
                     this._hzScrollBar.element.visible = false;
+
+                this._owner.onEvent("onmouseover", this.__rollOver, this);
+                this._owner.onEvent("onmouseout", this.__rollOut, this);
             }
         }
         else
@@ -554,7 +561,9 @@ export class ScrollPane {
 
         if (this._overlapSize.y > 0) {
             var bottom: number = this._yPos + this._viewSize.y;
-            if (setFirst || rect.y <= this._yPos || rect.height >= this._viewSize.y) {
+            if (setFirst || rect.y <= this._yPos) {
+                if (rect.y + rect.height >= bottom) //if an item size is large than viewSize, dont scroll
+                    return;
                 if (this._pageMode)
                     this.setPosY(Math.floor(rect.y / this._pageSize.y) * this._pageSize.y, ani);
                 else
@@ -566,12 +575,15 @@ export class ScrollPane {
                 else if (rect.height <= this._viewSize.y / 2)
                     this.setPosY(rect.y + rect.height * 2 - this._viewSize.y, ani);
                 else
-                    this.setPosY(rect.y + rect.height - this._viewSize.y, ani);
+                    this.setPosY(rect.y + Math.min(rect.height - this._viewSize.y, 0), ani);
             }
         }
         if (this._overlapSize.x > 0) {
             var right: number = this._xPos + this._viewSize.x;
-            if (setFirst || rect.x <= this._xPos || rect.width >= this._viewSize.x) {
+            if (setFirst || rect.x <= this._xPos) {
+                if (rect.x + rect.width >= right) //if an item size is large than viewSize, dont scroll
+                    return;
+
                 if (this._pageMode)
                     this.setPosX(Math.floor(rect.x / this._pageSize.x) * this._pageSize.x, ani);
                 else
@@ -583,7 +595,7 @@ export class ScrollPane {
                 else if (rect.width <= this._viewSize.x / 2)
                     this.setPosX(rect.x + rect.width * 2 - this._viewSize.x, ani);
                 else
-                    this.setPosX(rect.x + rect.width - this._viewSize.x, ani);
+                    this.setPosX(rect.x + Math.min(rect.width - this._viewSize.x, 0), ani);
             }
         }
 
@@ -815,6 +827,18 @@ export class ScrollPane {
         if (this._displayInDemand) {
             this._vScrollNone = this._contentSize.y <= this._viewSize.y;
             this._hScrollNone = this._contentSize.x <= this._viewSize.x;
+
+            if (this._vtScrollBar && this._hzScrollBar) {
+                if (!this._hScrollNone)
+                    this._vtScrollBar.height = this._owner.height - this._hzScrollBar.height - this._scrollBarMargin.top - this._scrollBarMargin.bottom;
+                else
+                    this._vtScrollBar.height = this._owner.height - this._scrollBarMargin.top - this._scrollBarMargin.bottom;
+
+                if (!this._vScrollNone)
+                    this._hzScrollBar.width = this._owner.width - this._vtScrollBar.width - this._scrollBarMargin.left - this._scrollBarMargin.right;
+                else
+                    this._hzScrollBar.width = this._owner.width - this._scrollBarMargin.left - this._scrollBarMargin.right;
+            }
         }
 
         if (this._vtScrollBar) {
@@ -1295,6 +1319,16 @@ export class ScrollPane {
         // }
     }
 
+    private __rollOver() {
+        this._hover = true;
+        this.updateScrollBarVisible();
+    }
+
+    private __rollOut() {
+        this._hover = false;
+        this.updateScrollBarVisible();
+    }
+
     private updateScrollBarPos(): void {
         if (this._vtScrollBar)
             this._vtScrollBar.setScrollPerc(this._overlapSize.y == 0 ? 0 : clamp(-this._container.y, 0, this._overlapSize.y) / this._overlapSize.y);
@@ -1325,7 +1359,7 @@ export class ScrollPane {
         if (this._scrollBarDisplayAuto)
             GTween.kill(bar, false, "alpha");
 
-        if (this._scrollBarDisplayAuto && this._tweening == 0 && !this._dragged && !bar.gripDragging) {
+        if (this._scrollBarDisplayAuto && !this._hover && this._tweening == 0 && !this._dragged && !bar.gripDragging) {
             if (bar.element.visible)
                 GTween.to(1, 0, 0.5).setDelay(0.5).onComplete(this.__barTweenComplete, this).setTarget(bar, "alpha");
         }
@@ -1342,7 +1376,8 @@ export class ScrollPane {
     }
 
     private getLoopPartSize(division: number, axis: AxisType): number {
-        return (this._contentSize[axis] + (axis == "x" ? (<GList>(this._owner)).columnGap : (<GList>(this._owner)).lineGap)) / division;
+        let list: any = this._owner; //assume it is a list
+        return (this._contentSize[axis] + (axis == "x" ? list.columnGap : list.lineGap)) / division;
     }
 
     private loopCheckingCurrent(): boolean {

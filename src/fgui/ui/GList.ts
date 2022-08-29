@@ -260,7 +260,6 @@ export class GList extends GComponent {
         }
         child.onEvent("onactivate", this.__clickItem, this);
         child.onEvent("oncontextmenu", this.__clickItem, this);
-
         return child;
     }
 
@@ -554,8 +553,7 @@ export class GList extends GComponent {
         }
     }
 
-    private __clickItem(evt :Event): void {
-        var sender = evt.data;
+    private __clickItem(sender : GObject, evt : number): void {
         if (this._scrollPane && this._scrollPane.isDragged)
             return;
 

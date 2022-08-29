@@ -25,6 +25,44 @@ import { PackageItem } from "./PackageItem";
 import { Relations } from "./Relations";
 import { UIConfig } from "./UIConfig";
 
+export const PanelEventSet = new Set<string>([
+    "onactivate",
+    "oncancel",
+    "oncontextmenu",
+    "ondblclick",
+    "ondeselect",
+    "oneconsetloaded",
+    "onfilled",
+    "onfindmatchend",
+    "onfindmatchstart",
+    "onfocus",
+    "onblur",
+    "ondescendantfocus",
+    "ondescendantblur",
+    "oninputsubmit",
+    "onload",
+    "onmouseactivate",
+    "onmouseout",
+    "onmouseover",
+    "onmousemove",
+    "onmovedown",
+    "onmoveleft",
+    "onmoveright",
+    "onmoveup",
+    "onnotfilled",
+    "onpagesetupsuccess",
+    "onpopupsdismissed",
+    "onselect",
+    "ontabforward",
+    "ontabbackward",
+    "ontextentrychange",
+    "ontextentrysubmit",
+    "onscrolledtobottom",
+    "onscrolledtorightedge",
+    "ontooltiploaded",
+    "onvaluechanged"
+]);
+
 export class GObject extends EventDispatcher {
     public data?: any;
     public packageItem?: PackageItem;
@@ -381,8 +419,8 @@ export class GObject extends EventDispatcher {
     public set touchable(value: boolean) {
         if (this._touchable != value) {
             this._touchable = value;
+            this.handleTouchableChanged();
             this.updateGear(3);
-            this._element.touchable = this._touchable;
         }
     }
 
@@ -792,6 +830,10 @@ export class GObject extends EventDispatcher {
         this._element.alpha = this._alpha;
     }
 
+    protected handleTouchableChanged(): void {
+        this._element.touchable = this._touchable;
+    }
+
     public handleVisibleChanged(): void {
         this._element.visible = this.internalVisible2;
     }
@@ -1008,7 +1050,7 @@ export class GObject extends EventDispatcher {
 
     protected addEvent(evt : EventType, callback : Function, caller : any)
     {
-        this.on.call(caller, evt, callback, caller);
+        this.on(evt, callback, caller);
         if (!this.evtMap.has(evt))
         {
             this.evtMap.set(evt, caller);
@@ -1022,9 +1064,10 @@ export class GObject extends EventDispatcher {
                     Timers.addUpdate(this.OnUpdate, this);
                 }
             }
-            else
+            else if (PanelEventSet.has(evt))
             {
-                this.element.nativePanel.SetPanelEvent(evt as PanelEvent, this.emit.bind(caller, evt, caller));
+                //直接this.emit分发
+                this.element.nativePanel.SetPanelEvent(evt as PanelEvent, this.emit.bind(caller, evt));
             }
         }
     }

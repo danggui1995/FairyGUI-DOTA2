@@ -63,7 +63,6 @@ export class UIElement extends DotaPanel {
     public initElement()
     {
         this.nativePanel = $.CreatePanel( "Panel", $('#HiddenRoot'), this.$owner.panelName);
-        this.nativePanel.hittestchildren
     }
 
     public get name(): string {
