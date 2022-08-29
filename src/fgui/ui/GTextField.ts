@@ -6,7 +6,6 @@ import { UIConfig } from "./UIConfig";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { defaultParser } from "../utils/UBBParser";
 import { XMLUtils } from "../utils/xml/XMLUtils";
-import { UIElement } from "../core/UIElement";
 
 export type TextTemplate = { [index: string]: string };
 
@@ -201,7 +200,8 @@ export class GTextField extends GObject {
 
         if (this._underConstruct)
             this._element.setSize(this.width, this.height);
-        else if (this._element.autoSize != AutoSizeType.Both) {
+        else
+        {
             if (this._element.autoSize == AutoSizeType.Height) {
                 this._element.width = this.width;//先调整宽度，让文本重排
                 if (this._text != "") //文本为空时，1是本来就不需要调整， 2是为了防止改掉文本为空时的默认高度，造成关联错误
@@ -211,7 +211,6 @@ export class GTextField extends GObject {
             {
                 this._element.setSize(this.width, this.height);
             }
-                
         }
     }
 

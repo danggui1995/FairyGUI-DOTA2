@@ -18,6 +18,7 @@ export class TextField extends UIElement {
     protected _label : LabelPanel;
     protected _container : Panel;
     protected _delayUpdateFunc : any;
+    protected _tmpChangWrapping : boolean = false;
 
     constructor() {
         super();
@@ -55,6 +56,7 @@ export class TextField extends UIElement {
         this._label.style.textDecoration = this._textFormat.underline ? "underline" : "none";
         if (this._textFormat.align != undefined)
         {
+            this._label.style.horizontalAlign = this._textFormat.align;
             this._label.style.textAlign = this._textFormat.align;
         }
         if (this._textFormat.verticalAlign != undefined)
@@ -105,26 +107,21 @@ export class TextField extends UIElement {
         this.applyText();
     }
 
-    private applyText(): void {
-        
+    private applyText(): void { 
         this._updatingSize = true;
-        let tmpChangWrapping: boolean;
+        this._tmpChangWrapping = false;
         if (this._autoSize == AutoSizeType.Both) {
             this._label.style.width = null;
 
             if (this._maxWidth > 0) {
                 this.updateWrapping();
-                tmpChangWrapping = true;
+                this._tmpChangWrapping = true;
             }
         }
 
+        this._label.AddClass("FGUI_OutScreen");
         this._label.html = this._html;
         this._label.text = this.text;
-        
-        if (tmpChangWrapping && this._contentRect.width > this._maxWidth) {
-            this._label.style.width = this._maxWidth + "px";
-            this.updateWrapping(true);
-        }
 
         $.Schedule(0.01, this._delayUpdateFunc);
     }
@@ -138,18 +135,25 @@ export class TextField extends UIElement {
         }
         var height = Math.floor(this._label.contentheight / this._label.actualuiscale_y);
         var width = Math.floor(this._label.contentwidth / this._label.actualuiscale_x);
+        this._label.RemoveClass("FGUI_OutScreen");
         
         this._textSize.set(width, height);
         if (this._autoSize == AutoSizeType.Both) {
-            this._contentRect.width = this._textSize.x;
-            this._contentRect.height = this._textSize.y;
             if (this.$owner)
+            {
                 this.$owner.setSize(this._textSize.x, this._textSize.y);
+            }
         }
         else if (this._autoSize == AutoSizeType.Height) {
-            this._contentRect.height = this._textSize.y;
             if (this.$owner)
+            {
                 this.$owner.height = this._textSize.y;
+            }
+        }
+
+        if (this._tmpChangWrapping && this._contentRect.width > this._maxWidth) {
+            this._label.style.width = this._maxWidth + "px";
+            this.updateWrapping(true);
         }
 
         this._container.style.width = this._contentRect.width + "px";
