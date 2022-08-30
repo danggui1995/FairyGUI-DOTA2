@@ -128,8 +128,18 @@ export class UIPackage {
         var pi: PackageItem = pkg._itemsByName[resName];
         if (!pi)
             return null;
-
         return UIConfig.ouputDir + pkgName + "/" + pkg.id + pi.id;
+    }
+
+    public static getItemAssetPath(pkgName: string, resName: string): string {
+        var pkg: UIPackage = UIPackage.getByName(pkgName);
+        if (!pkg)
+            return null;
+
+        var pi: PackageItem = pkg._itemsByName[resName];
+        if (!pi)
+            return null;
+        return pi.file;
     }
 
     public static getItemRawURL(pkgName: string, resName: string): string {

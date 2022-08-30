@@ -88,7 +88,7 @@ export class GObject extends EventDispatcher {
     private _internalVisible: boolean = true;
     private _handlingController?: boolean;
     private _tooltips: string;
-    private _updateRegisted : boolean = false;
+    private _updateRegisted : boolean;
 
     private _relations: Relations;
     private _group: GGroup;
@@ -147,6 +147,7 @@ export class GObject extends EventDispatcher {
         this._gears = new Array<GearBase>(10);
         this.touchAction = 0;
         this._localRect = new Rect(0, 0, 1, 1);
+        this._updateRegisted = false;
     }
 
     public get id(): string {
@@ -682,7 +683,7 @@ export class GObject extends EventDispatcher {
         return this._element == null;
     }
 
-    public clearAllPanelEvent()
+    protected clearAllPanelEvent()
     {
         if (this._updateRegisted)
         {
@@ -691,8 +692,12 @@ export class GObject extends EventDispatcher {
         }
     }
 
-    public dispose(): void {
+    public clearTouchEvent()
+    {
         this.clearAllPanelEvent();
+    }
+
+    public dispose(): void {
         this.removeFromParent();
         this._relations.dispose();
         this._element.dispose();

@@ -170,7 +170,7 @@ export class PopupMenu {
             // GRoot.getInst(this._contentPane).hidePopup(this._contentPane);
     }
 
-    private __clickItem(evt: Event): void {
+    private __clickItem(sender: GObject, evt: Event): void {
         let item = evt.data;
         if (!(item instanceof GButton))
             return;

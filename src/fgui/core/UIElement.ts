@@ -437,8 +437,7 @@ export class UIElement extends DotaPanel {
             child.updateTouchableFlag();
         }
 
-        if (this.isConnected)
-            child.broadcastEvent("added_to_stage");
+        child.broadcastEvent("added_to_stage");
     }
 
     public removeChild<T extends DotaPanel>(child: T): T {
@@ -459,10 +458,9 @@ export class UIElement extends DotaPanel {
 
     public removeChildAt(index: number) {
         let child: UIElement = this._children[index];
-        if (this.isConnected) {
-            child.broadcastEvent("removed_from_stage");
-            // this.stage.validateFocus(this, child);
-        }
+
+        child.broadcastEvent("removed_from_stage");
+
         this._children.splice(index, 1);
         super.removeChild(child);
         child._parent = null;

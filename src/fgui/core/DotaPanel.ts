@@ -10,8 +10,6 @@ export class DotaPanel {
     acceptsfocus?: boolean;
     draggable?: boolean;
     parentElement ?: DotaPanel;
-    isConnected ?: boolean;
-    // TODO: sectionpos?: 'auto';?
 
     onload?: EventHandler;
     onfocus?: EventHandler;
@@ -65,8 +63,7 @@ export class DotaPanel {
             return;
         }
         child.SetParent($('#HiddenRoot'));
-        // child.SetParent(null);
-        // child.DeleteAsync(0);
+        // child.DeleteAsync(5);
     }
 
     public insertBefore<T extends DotaPanel>(child : T, refNode : T)

@@ -46,6 +46,7 @@ export class Image extends UIElement {
 
     protected _textureScale: Vec2;
     protected _tileGridIndice: number = 0;
+    nativePanel : ImagePanel;
 
     constructor() {
         super();
@@ -172,7 +173,7 @@ export class Image extends UIElement {
             else
                 this.nativePanel.style.backgroundSize = "auto";
             this.nativePanel.style.backgroundRepeat = "repeat";
-            this.nativePanel.style.backgroundImage = "url('" + this._src + "')";
+            this.nativePanel.SetImage(this._src);
         }
         else if (this._scale9Grid) {
             this.nativePanel.style.backgroundRepeat = "no-repeat";
@@ -234,7 +235,7 @@ export class Image extends UIElement {
         else {
             this.nativePanel.style.backgroundSize = "100% 100%";
             this.nativePanel.style.backgroundRepeat = "no-repeat";
-            this.nativePanel.style.backgroundImage = "url('" + this._src + "')";
+            this.nativePanel.SetImage(this._src);
         }
     }
 }

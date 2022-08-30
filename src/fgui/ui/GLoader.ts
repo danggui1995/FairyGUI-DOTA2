@@ -20,6 +20,8 @@ export class GLoader extends GObject {
     private _content2?: GComponent;
     private _updatingLayout: boolean;
     private _loadingImg?: ImagePanel;
+    private _checkSourceSizeFunc ?: any;
+    private _checkSourceSizeFuncTimer : ScheduleID | null;
 
     constructor(name ?: string) {
         super(name);
@@ -27,18 +29,23 @@ export class GLoader extends GObject {
         this._fill = LoaderFillType.None;
         this._align = "left";
         this._valign = "top";
+        this._checkSourceSizeFunc = ()=>{
+            this._checkSourceSizeFuncTimer = null;
+            this.checkSourceSize();
+        }
     }
 
     protected createElement(): void {
         this._element = new Image();
         this._element.$owner = this;
         this._element.init();
+        this._element.nativePanel.style.overflow = 'noclip';
 
         this._content = new MovieClip();
         this._content.$owner = this;
         this._content.init();
-
         this._content.setNotInteractable();
+
         this._element.addChild(this._content);
     }
 
@@ -206,8 +213,46 @@ export class GLoader extends GObject {
             return;
         }
 
+        this._content.nativePanel.AddClass("FGUI_OutScreen");
         if (this._url.startsWith("ui://"))
+        {
             this.loadFromPackage(this._url);
+        }
+        else
+        {
+            //internal
+            this._content.src = this._url;
+            this.updateLayout();
+        }
+    }
+
+    protected isSizeInValid(): boolean
+    {
+        if (this._content.nativePanel.contentheight == 0 || this._content.nativePanel.contentwidth == 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    protected checkSourceSize()
+    {
+        if (this.isSizeInValid())
+        {
+            if (!this._checkSourceSizeFuncTimer)
+            {
+                this._checkSourceSizeFuncTimer = $.Schedule(0.01, this._checkSourceSizeFunc);
+            }
+            
+            return;
+        }
+
+        this._content.nativePanel.RemoveClass("FGUI_OutScreen");
+        this._checkSourceSizeFuncTimer = null;
+        this.sourceHeight  = Math.floor(this._content.nativePanel.contentheight / this._content.nativePanel.actualuiscale_y);
+        this.sourceWidth = Math.floor(this._content.nativePanel.contentwidth / this._content.nativePanel.actualuiscale_x);
+
+        this.updateLayout();
     }
 
     protected loadFromPackage(itemURL: string): void {
@@ -222,7 +267,6 @@ export class GLoader extends GObject {
                 this.setSize(this.sourceWidth, this.sourceHeight);
 
             if (this._contentItem.type == PackageItemType.Image) {
-                this._content.src = this._contentItem.file;
                 this._content.scale9Grid = this._contentItem.scale9Grid;
                 this._content.scaleByTile = this._contentItem.scaleByTile;
                 this._content.tileGridIndice = this._contentItem.tileGridIndice;
@@ -230,6 +274,8 @@ export class GLoader extends GObject {
                     this._content.textureScale = new Vec2(this.sourceWidth, this.sourceHeight);
                 else
                     this._content.textureScale = new Vec2(this._contentItem.width / this.sourceWidth, this._contentItem.height / this.sourceHeight);
+
+                this._content.src = this._contentItem.file;
                 this.updateLayout();
             }
             else if (this._contentItem.type == PackageItemType.MovieClip) {
@@ -279,6 +325,12 @@ export class GLoader extends GObject {
                 this.setSize(50, 30);
                 this._updatingLayout = false;
             }
+            return;
+        }
+
+        if (this._content.src && this.isSizeInValid())
+        {
+            this._checkSourceSizeFunc();
             return;
         }
 

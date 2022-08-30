@@ -29,9 +29,14 @@ export class MovieClip extends Image {
         super();
 
         this.setPlaySettings();
+    }
 
-        // this.addEvent("added_to_stage", this.__addToStage, this);
-        // this.addEvent("removed_from_stage", this.__removeFromStage, this);
+    public init()
+    {
+        super.init();
+        
+        this.$owner.onEvent("added_to_stage", this.__addToStage, this);
+        this.$owner.onEvent("removed_from_stage", this.__removeFromStage, this);
     }
 
     public get frames(): Frame[] {

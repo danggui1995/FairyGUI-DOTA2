@@ -98,7 +98,7 @@ export class GScrollBar extends GComponent {
             this._arrowButton2.onEvent("onactivate", this.__arrowButton2Click, this);
     }
 
-    private __gripTouchBegin(evt: Event): void {
+    private __gripTouchBegin(): void {
         if (this._bar == null)
             return;
 
@@ -111,7 +111,7 @@ export class GScrollBar extends GComponent {
         this._dragOffset.y -= this._grip.y;
     }
 
-    private __gripTouchMove(evt: Event): void {
+    private __gripTouchMove(): void {
         if (!this.onStage)
             return;
         
@@ -140,7 +140,7 @@ export class GScrollBar extends GComponent {
         }
     }
 
-    private __gripTouchEnd(evt: Event): void {
+    private __gripTouchEnd(): void {
         if (GObject.draggingObject == this)
         {
             GObject.draggingObject = null;
@@ -149,21 +149,21 @@ export class GScrollBar extends GComponent {
         this._target.updateScrollBarVisible();
     }
 
-    private __arrowButton1Click(evt: Event): void {
+    private __arrowButton1Click(): void {
         if (this._vertical)
             this._target.scrollUp();
         else
             this._target.scrollLeft();
     }
 
-    private __arrowButton2Click(evt: Event): void {
+    private __arrowButton2Click(): void {
         if (this._vertical)
             this._target.scrollDown();
         else
             this._target.scrollRight();
     }
 
-    private __barTouchBegin(evt: Event): void {
+    private __barTouchBegin(): void {
         var cpos = GameUI.GetCursorPosition();
         var pt: Vec2 = this._grip.globalToLocal(cpos[0], cpos[1], s_vec2);
         if (this._vertical) {

@@ -461,7 +461,7 @@ export class GComboBox extends GComponent {
         this.setCurrentState();
     }
 
-    private __clickItem(evt: Event): void {
+    private __clickItem(sender: GObject, evt: Event): void {
         this.cancelDropdown();
 
         this._selectedIndex = -1;
@@ -483,5 +483,15 @@ export class GComboBox extends GComponent {
             return;
 
         this.setCurrentState();
+    }
+
+    public clearTouchEvent()
+    {
+        super.clearTouchEvent();
+
+        if (this._dropdownShown == false && this.dropdown)
+        {
+            this.dropdown.clearTouchEvent();
+        }
     }
 }
