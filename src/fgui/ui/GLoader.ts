@@ -21,7 +21,7 @@ export class GLoader extends GObject {
     private _updatingLayout: boolean;
     private _loadingImg?: ImagePanel;
     private _checkSourceSizeFunc ?: any;
-    private _checkSourceSizeFuncTimer : ScheduleID | null;
+    private _checkSourceSizeTimer : ScheduleID | null;
 
     constructor(name ?: string) {
         super(name);
@@ -29,8 +29,11 @@ export class GLoader extends GObject {
         this._fill = LoaderFillType.None;
         this._align = "left";
         this._valign = "top";
-        this._checkSourceSizeFunc = ()=>{
-            this._checkSourceSizeFuncTimer = null;
+        this._checkSourceSizeFunc = (keepTimer ?: boolean)=>{
+            if (!keepTimer)
+            {
+                this._checkSourceSizeTimer = null;
+            }
             this.checkSourceSize();
         }
     }
@@ -52,6 +55,12 @@ export class GLoader extends GObject {
     public dispose(): void {
         if (this._content2)
             this._content2.dispose();
+
+        if (this._checkSourceSizeTimer)
+        {
+            $.CancelScheduled(this._checkSourceSizeTimer);
+            this._checkSourceSizeTimer = null;
+        }
 
         super.dispose();
     }
@@ -239,16 +248,16 @@ export class GLoader extends GObject {
     {
         if (this.isSizeInValid())
         {
-            if (!this._checkSourceSizeFuncTimer)
+            if (!this._checkSourceSizeTimer)
             {
-                this._checkSourceSizeFuncTimer = $.Schedule(0.01, this._checkSourceSizeFunc);
+                this._checkSourceSizeTimer = $.Schedule(0.01, this._checkSourceSizeFunc);
             }
             
             return;
         }
 
         this._content.nativePanel.RemoveClass("FGUI_OutScreen");
-        this._checkSourceSizeFuncTimer = null;
+        this._checkSourceSizeTimer = null;
         this.sourceHeight  = Math.floor(this._content.nativePanel.contentheight / this._content.nativePanel.actualuiscale_y);
         this.sourceWidth = Math.floor(this._content.nativePanel.contentwidth / this._content.nativePanel.actualuiscale_x);
 
@@ -330,7 +339,7 @@ export class GLoader extends GObject {
 
         if (this._content.src && this.isSizeInValid())
         {
-            this._checkSourceSizeFunc();
+            this._checkSourceSizeFunc(true);
             return;
         }
 

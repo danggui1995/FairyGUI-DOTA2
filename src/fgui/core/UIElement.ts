@@ -524,7 +524,8 @@ export class UIElement extends DotaPanel {
     }
 
     public dispose() {
-
+        this.nativePanel.RemoveAndDeleteChildren();
+        this.nativePanel.DeleteAsync(0);
     }
 
     public traverseVisible(callback: (obj: UIElement) => void): void {

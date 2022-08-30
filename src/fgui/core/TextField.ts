@@ -19,6 +19,7 @@ export class TextField extends UIElement {
     protected _container : Panel;
     protected _delayUpdateFunc : any;
     protected _tmpChangWrapping : boolean = false;
+    protected _delayUpdateTimer ?: ScheduleID;
 
     constructor() {
         super();
@@ -26,7 +27,11 @@ export class TextField extends UIElement {
         this._textFormat = new TextFormat();
         this._text = "";
         this._textSize = new Vec2();
-        this._delayUpdateFunc = ()=>{
+        this._delayUpdateFunc = (keepTimer ?: boolean)=>{
+            if (!keepTimer)
+            {
+                this._delayUpdateTimer = null;
+            }
             this.DelayUpdate();
         };
     }
@@ -123,14 +128,18 @@ export class TextField extends UIElement {
         this._label.html = this._html;
         this._label.text = this.text;
 
-        this._delayUpdateFunc();
+        this._delayUpdateFunc(true);
     }
 
     public DelayUpdate(): void
     {
+        if (this._delayUpdateTimer)
+        {
+            return;
+        }
         if (!this._label.IsSizeValid())
         {
-            $.Schedule(0.05, this._delayUpdateFunc);
+            this._delayUpdateTimer = $.Schedule(0.02, this._delayUpdateFunc);
             return;
         }
         var height = Math.floor(this._label.contentheight / this._label.actualuiscale_y);
@@ -181,7 +190,7 @@ export class TextField extends UIElement {
             else if(this._autoSize == AutoSizeType.Shrink)
                 this._label.style.textOverflow = "shrink";
             else
-                this._label.style.textOverflow = null;
+                this._label.style.textOverflow = "clip";
         }
     }
 
@@ -217,5 +226,16 @@ export class TextField extends UIElement {
         else {
             this._label.style.whiteSpace = "normal";
         }
+    }
+
+    public dispose()
+    {
+        if (this._delayUpdateTimer)
+        {
+            $.CancelScheduled(this._delayUpdateTimer);
+            this._delayUpdateTimer = null;
+        }
+
+        super.dispose();
     }
 }

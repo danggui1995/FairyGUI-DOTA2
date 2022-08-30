@@ -652,9 +652,19 @@ export class GObject extends EventDispatcher {
         this._parent = val;
     }
 
-    public removeFromParent(): void {
+    public removeFromParent(dispose ?: boolean): void {
         if (this._parent)
-            this._parent.removeChild(this);
+        {
+            this._parent.removeChild(this, dispose);
+        }
+        else
+        {
+            //已经被移除过了 直接native delete
+            if (dispose)
+            {
+                this.dispose();
+            }
+        }
     }
 
     public get asCom(): GComponent {
@@ -698,7 +708,6 @@ export class GObject extends EventDispatcher {
     }
 
     public dispose(): void {
-        this.removeFromParent();
         this._relations.dispose();
         this._element.dispose();
         this._element = null;

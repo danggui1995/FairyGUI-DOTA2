@@ -63,7 +63,6 @@ export class DotaPanel {
             return;
         }
         child.SetParent($('#HiddenRoot'));
-        // child.DeleteAsync(5);
     }
 
     public insertBefore<T extends DotaPanel>(child : T, refNode : T)
