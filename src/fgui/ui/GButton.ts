@@ -401,11 +401,11 @@ export class GButton extends GComponent {
             this.setState("up");
 
         this.addEvent("removed_from_stage", this.__removeFromStage, this);
-        this.addEvent('onTouchBegin', this.__btnTouchBegin, this);
-        this.addEvent('onTouchEnd', this.__btnTouchEnd, this);
-        this.addEvent('onactivate', this.__click, this);
-        this.addEvent("onmouseover", this.__rollover, this);
-        this.addEvent("onmouseout", this.__rollout, this);
+        this.onEvent('onTouchBegin', this.__btnTouchBegin, this);
+        this.onEvent('onTouchEnd', this.__btnTouchEnd, this);
+        this.onEvent('onactivate', this.__click, this);
+        this.onEvent("onmouseover", this.__rollover, this);
+        this.onEvent("onmouseout", this.__rollout, this);
     }
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {

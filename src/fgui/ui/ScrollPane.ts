@@ -78,8 +78,6 @@ export class ScrollPane {
     private _dragged: boolean;
 
     private _hover : boolean;
-    private _lastAutoScroll?: number;
-    private _autoScrollThresold?: number;
 
     private _tweening: number;
     private _tweenTime: Vec2;
@@ -997,7 +995,7 @@ export class ScrollPane {
             this.updatePageController();
     }
 
-    private __touchBegin(sender : GObject, evt: Event): void {
+    private __touchBegin(owner : GObject): void {
         if (!this._touchEffect)
             return;
 
@@ -1009,7 +1007,6 @@ export class ScrollPane {
         else
             this._dragged = false;
 
-        var owner = evt.data;
         var cpos = GameUI.GetCursorPosition();
         var pt: Vec2 = owner.globalToLocal(cpos[0], cpos[1], s_vec2);
 
@@ -1020,10 +1017,10 @@ export class ScrollPane {
         this._isHoldAreaDone = false;
         this._velocity.set(0, 0);
         this._velocityScale = 1;
-        this._lastMoveTime = Game.Time() * 1000;
+        this._lastMoveTime = Game.Time();
     }
 
-    private __touchMove(sender : GObject, evt: Event): void {
+    private __touchMove(owner : GObject): void {
         
         if (!this._touchEffect || this.owner.isDisposed)
             return;
@@ -1031,7 +1028,6 @@ export class ScrollPane {
         if (ScrollPane.draggingPane && ScrollPane.draggingPane != this || GObject.draggingObject) //已经有其他拖动
             return;
 
-        var owner = evt.data;
         var sensitivity: number = UIConfig.touchScrollSensitivity;
         var cpos = GameUI.GetCursorPosition();
         var pt: Vec2 = owner.globalToLocal(cpos[0], cpos[1]);
@@ -1137,7 +1133,7 @@ export class ScrollPane {
 
         //更新速度
         var frameRate: number = 60;
-        var now: number = Game.Time() * 1000;
+        var now: number = Game.Time();
         var deltaTime: number = Math.max(now - this._lastMoveTime, 1 / frameRate);
         var deltaPositionX: number = pt.x - this._lastTouchPos.x;
         var deltaPositionY: number = pt.y - this._lastTouchPos.y;
@@ -1266,7 +1262,7 @@ export class ScrollPane {
             //更新速度
             if (!this._inertiaDisabled) {
                 var frameRate: number = 60;
-                var elapsed: number = (Game.Time() * 1000 - this._lastMoveTime) * frameRate - 1;
+                var elapsed: number = (Game.Time() - this._lastMoveTime) * frameRate - 1;
                 if (elapsed > 1) {
                     var factor: number = Math.pow(0.833, elapsed);
                     this._velocity.x = this._velocity.x * factor;
@@ -1301,7 +1297,7 @@ export class ScrollPane {
         this.startTween(2);
     }
 
-    private __mouseWheel(sender : GObject, evt: Event): void {
+    private __mouseWheel(owner : GObject): void {
         if (!this._mouseWheelEnabled)
             return;
 

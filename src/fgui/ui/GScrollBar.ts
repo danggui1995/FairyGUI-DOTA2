@@ -102,11 +102,6 @@ export class GScrollBar extends GComponent {
         if (this._bar == null)
             return;
 
-        if (!GObject.draggingObject)
-        {
-            GObject.draggingObject = this;
-        }
-
         this._gripDragging = true;
         this._target.updateScrollBarVisible();
 
@@ -124,7 +119,7 @@ export class GScrollBar extends GComponent {
         {
             return;
         }
-
+        GObject.draggingObject = this;
         var gpos = GameUI.GetCursorPosition();
         var pt: Vec2 = this.globalToLocal(gpos[0], gpos[1], s_vec2);
         if (this._vertical) {

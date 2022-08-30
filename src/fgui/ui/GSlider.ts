@@ -228,13 +228,6 @@ export class GSlider extends GComponent {
             this.globalToLocal(gpos[0], gpos[1], this._clickPos);
             this._clickPercent = clamp01((this._value - this._min) / (this._max - this._min));
         }
-        else
-        {
-            if (!GObject.draggingObject)
-            {
-                GObject.draggingObject = this;
-            }
-        }
     }
 
     private __gripTouchMove(): void {
@@ -245,6 +238,7 @@ export class GSlider extends GComponent {
         {
             return;
         }
+        GObject.draggingObject = this;
         var gpos = GameUI.GetCursorPosition();
         var pt: Vec2 = this.globalToLocal(gpos[0], gpos[1], s_vec2);
         var deltaX: number = pt.x - this._clickPos.x;

@@ -132,11 +132,11 @@ function __timer(timeStamp: number): boolean {
 }
 
 let tickFunc : any;
-let screenHeight = 1080;
+let tickInterval = 1 / 60;
 tickFunc = function()
 {
     __timer(Game.Time() * 1000);
-    $.Schedule(1 / 90, tickFunc);
+    $.Schedule(tickInterval, tickFunc);
 }
 
 

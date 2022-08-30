@@ -129,8 +129,6 @@ export class GObject extends EventDispatcher {
     
     public panelName : string;
     public touchAction : 0 | 1;
-    public isInCompArea : boolean;
-    protected evtMap : Map<EventType, any>;
     private updateFuncRegisted : boolean;
     
     constructor(name ?: string) {
@@ -146,7 +144,6 @@ export class GObject extends EventDispatcher {
         this._relations = new Relations(this);
         this._gears = new Array<GearBase>(10);
         this.touchAction = 0;
-        this.evtMap = new Map();
         this.updateFuncRegisted = false;
     }
 
@@ -260,8 +257,6 @@ export class GObject extends EventDispatcher {
 
     public setFullScreen()
     {
-        // this.element.nativePanel.style.width = "100%";
-        // this.element.nativePanel.style.height = "100%";
         var radio = $.UIObjectFactory.getAspectRadio();
         this.width = Game.GetScreenWidth() * radio;
         this.height = Game.GetScreenHeight() * radio;
@@ -687,9 +682,12 @@ export class GObject extends EventDispatcher {
 
     public clearAllPanelEvent()
     {
-        this.clearPanelEvent('onactivate');
-        this.clearPanelEvent('onmouseover');
-        this.clearPanelEvent('onmouseout');
+        if (this.updateFuncRegisted)
+        {
+            this.updateFuncRegisted = false;
+            Timers.remove(this.OnUpdate, this);
+        }
+            
     }
 
     public dispose(): void {
@@ -1036,50 +1034,30 @@ export class GObject extends EventDispatcher {
         this.element.nativePanel.ClearPanelEvent(evt);
     }
 
-    private OnMouseOver(caller : any)
-    {
-        this.isInCompArea = true;
-        this.OnUpdate();
-    }
-
-    private OnMouseOut(caller : any)
-    {
-        this.isInCompArea = false;
-        this.OnUpdate();
-    }
-
     protected addEvent(evt : EventType, callback : Function, caller : any)
     {
         this.on(evt, callback, caller);
-        if (!this.evtMap.has(evt))
+        if (evt == 'onTouchBegin' || evt == 'onTouchEnd' || evt == 'onTouchMove')
         {
-            this.evtMap.set(evt, caller);
-            if (evt == 'onTouchBegin' || evt == 'onTouchEnd' || evt == 'onTouchMove')
+            if (this.updateFuncRegisted == false)
             {
-                this.addEvent('onmouseout', this.OnMouseOut.bind(caller), caller);
-                this.addEvent('onmouseover', this.OnMouseOver.bind(caller), caller);
-                if (this.updateFuncRegisted == false)
-                {
-                    this.updateFuncRegisted = true;
-                    Timers.addUpdate(this.OnUpdate, this);
-                }
+                this.updateFuncRegisted = true;
+                Timers.addUpdate(this.OnUpdate, this);
             }
-            else if (PanelEventSet.has(evt))
-            {
-                //直接this.emit分发
-                this.element.nativePanel.SetPanelEvent(evt as PanelEvent, this.emit.bind(caller, evt));
-            }
+        }
+        else if (PanelEventSet.has(evt))
+        {
+            //直接this.emit分发
+            this.element.nativePanel.SetPanelEvent(evt as PanelEvent, this.emit.bind(caller, evt));
         }
     }
 
     protected removeEvent(evt : EventType, callback : Function, caller : any) : void
     {
-        this.off.call(caller, evt, callback, caller);
-
-        //TODO 移除Native事件
+        this.off(evt, callback, caller);
     }
 
-    //开放给外部的
+    //同一对象 同一事件最多绑定一个函数
     public onEvent(evt : EventType, callback : Function, caller ?: any) : void
     {
         this.addEvent(evt, callback.bind(caller, this), this);
@@ -1087,42 +1065,42 @@ export class GObject extends EventDispatcher {
 
     public offEvent(evt : EventType, callback : Function, caller ?: any) : void
     {
-        this.removeEvent(evt, callback.bind(caller, this), this);
+        this.removeEvent(evt, callback, caller);
     }
 
     private callEvent(evt : EventType)
     {
-        if (this.evtMap.has(evt))
+        this.emit(evt);
+    }
+
+    protected isInsideObject() : boolean
+    {
+        var gpos = GameUI.GetCursorPosition();
+        var localMousePos = this.globalToLocal(gpos[0], gpos[1]);
+        var objgpos = new Rect(0, 0, this.width, this.height);
+        if (localMousePos.x >= objgpos.xMin && localMousePos.x <= objgpos.xMax
+         && localMousePos.y >= objgpos.yMin && localMousePos.y <= objgpos.yMax)
         {
-            var sender = this.evtMap.get(evt);
-            this.emit.call(sender, evt, sender);
+            return true;
         }
+        return false;
     }
 
     public OnUpdate(): void
     {
         var isMouseDown = GameUI.IsMouseDown(0);
-        if (this.isInCompArea == true)
+        if (isMouseDown == true)
         {
-            // var cpos = GameUI.GetCursorPosition();
-            if (isMouseDown == true)
+            if (this.touchAction == 1)
+            {
+                this.callEvent('onTouchMove');
+            }
+            if (this.isInsideObject())
             {
                 if (this.touchAction == 0)
                 {
                     this.touchAction = 1;
                     this.callEvent('onTouchBegin');
-                }
-                else if (this.touchAction == 1)
-                {
-                    this.callEvent('onTouchMove');
-                }
-            }
-            else
-            {
-                if (this.touchAction == 1)
-                {
-                    this.callEvent('onTouchEnd');
-                    this.touchAction = 0;
                 }
             }
 
@@ -1135,15 +1113,8 @@ export class GObject extends EventDispatcher {
         {
             if (this.touchAction == 1)
             {
-                if (isMouseDown == false)
-                {
-                    this.callEvent('onTouchEnd');
-                    this.touchAction = 0;
-                }
-                else
-                {
-                    this.callEvent('onTouchMove');
-                }
+                this.callEvent('onTouchEnd');
+                this.touchAction = 0;
             }
         }
     }

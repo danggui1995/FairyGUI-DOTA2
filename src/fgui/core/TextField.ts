@@ -123,14 +123,14 @@ export class TextField extends UIElement {
         this._label.html = this._html;
         this._label.text = this.text;
 
-        $.Schedule(0.01, this._delayUpdateFunc);
+        this._delayUpdateFunc();
     }
 
     public DelayUpdate(): void
     {
         if (!this._label.IsSizeValid())
         {
-            $.Schedule(0.01, this._delayUpdateFunc);
+            $.Schedule(0.05, this._delayUpdateFunc);
             return;
         }
         var height = Math.floor(this._label.contentheight / this._label.actualuiscale_y);
