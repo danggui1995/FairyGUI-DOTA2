@@ -1,4 +1,3 @@
-import { Event } from "../event/Event";
 import { ScrollPane } from "../FairyGUI";
 import { Vec2 } from "../math/Vec2";
 import { ByteBuffer } from "../utils/ByteBuffer";

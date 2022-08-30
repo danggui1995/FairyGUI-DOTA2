@@ -1,5 +1,4 @@
 import { UIElement } from "../core/UIElement";
-import { Event } from "../event/Event";
 import { Rect } from "../math/Rect";
 import { Vec2 } from "../math/Vec2";
 import { ByteBuffer } from "../utils/ByteBuffer";

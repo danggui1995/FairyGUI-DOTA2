@@ -3,12 +3,9 @@ import { ButtonMode, ObjectPropID } from "./FieldTypes";
 import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
 import { GTextField } from "./GTextField";
-import { PackageItem } from "./PackageItem";
 import { UIConfig } from "./UIConfig";
-import { UIPackage } from "./UIPackage";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { Timers } from "../utils/Timers";
-import { Event } from "../event/Event";
 import { GTextInput } from "./GTextInput";
 
 export type ButtonStatus = "up" | "down" | "over" | "selectedOver" | "disabled" | "selectedDisabled";

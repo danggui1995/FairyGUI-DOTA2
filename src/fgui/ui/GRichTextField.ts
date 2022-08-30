@@ -1,4 +1,3 @@
-import { UIElement } from "../core/UIElement";
 import { TextField } from "../core/TextField";
 import { defaultParser } from "../utils/UBBParser";
 import { GTextField } from "./GTextField";

@@ -8,7 +8,7 @@ import { ByteBuffer } from "../utils/ByteBuffer";
 import { Timers } from "../utils/Timers";
 import { clamp, clamp01, lerp } from "../utils/ToolSet";
 import { Controller } from "./Controller";
-import { ListLayoutType, ScrollBarDisplayType, ScrollType } from "./FieldTypes";
+import { ScrollBarDisplayType, ScrollType } from "./FieldTypes";
 import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
 import { GScrollBar } from "./GScrollBar";
@@ -1297,22 +1297,20 @@ export class ScrollPane {
         this.startTween(2);
     }
 
-    private __mouseWheel(owner : GObject): void {
+    private __mouseWheel(owner : GObject, evt : Event): void {
         if (!this._mouseWheelEnabled)
             return;
 
-        // var delta: number = evt.input.mouseWheelDelta;
-        // if (this._snapToItem && Math.abs(delta) < 1)
-        //     delta = Math.sign(delta);
+        var delta: number = -evt.data;
 
-        // if (this._overlapSize.x > 0 && this._overlapSize.y == 0) {
-        //     let step: number = this._pageMode ? this._pageSize.x : this._scrollStep;
-        //     this.setPosX(this._xPos + step * delta, false);
-        // }
-        // else {
-        //     let step: number = this._pageMode ? this._pageSize.y : this._scrollStep;
-        //     this.setPosY(this._yPos + step * delta, false);
-        // }
+        if (this._overlapSize.x > 0 && this._overlapSize.y == 0) {
+            let step: number = this._pageMode ? this._pageSize.x : this._scrollStep;
+            this.setPosX(this._xPos + step * delta, false);
+        }
+        else {
+            let step: number = this._pageMode ? this._pageSize.y : this._scrollStep;
+            this.setPosY(this._yPos + step * delta, false);
+        }
     }
 
     private __rollOver() {

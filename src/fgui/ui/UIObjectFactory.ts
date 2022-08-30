@@ -20,7 +20,6 @@ import { GTree } from "./GTree";
 import { PackageItem } from "./PackageItem";
 import { UIPackage } from "./UIPackage";
 import { GLoader3D } from "./GLoader3D";
-import { UIConfig } from "./UIConfig";
 import {GDOTAAbilityImage, GDOTAHeroImage, GDOTAItemImage, GDOTAAvatarImage, GDOTAScenePanel, GDOTAUserName } from "../FairyGUI";
 
 export class UIObjectFactory {

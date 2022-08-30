@@ -15,7 +15,6 @@ import { GearXY } from "../gears/GearXY";
 import { Rect } from "../math/Rect";
 import { Vec2 } from "../math/Vec2";
 import { ByteBuffer } from "../utils/ByteBuffer";
-import { Timers } from "../utils/Timers";
 import { Controller } from "./Controller";
 import { ObjectPropID, RelationType } from "./FieldTypes";
 import { GComponent } from "./GComponent";
@@ -67,6 +66,8 @@ export class GObject extends EventDispatcher {
     public data?: any;
     public packageItem?: PackageItem;
     public static draggingObject: GObject;
+    private static s_AllUpdateObj : Set<GObject>;
+    public static mouseCallback ?: Function;
 
     private _x: number = 0;
     private _y: number = 0;
@@ -87,12 +88,14 @@ export class GObject extends EventDispatcher {
     private _internalVisible: boolean = true;
     private _handlingController?: boolean;
     private _tooltips: string;
+    private _updateRegisted : boolean = false;
 
     private _relations: Relations;
     private _group: GGroup;
     private _gears: GearBase[];
 
     protected _element?: UIElement;
+    protected _localRect : Rect;
 
     public minWidth: number = 0;
     public minHeight: number = 0;
@@ -129,7 +132,6 @@ export class GObject extends EventDispatcher {
     
     public panelName : string;
     public touchAction : 0 | 1;
-    private updateFuncRegisted : boolean;
     
     constructor(name ?: string) {
         super();
@@ -144,7 +146,7 @@ export class GObject extends EventDispatcher {
         this._relations = new Relations(this);
         this._gears = new Array<GearBase>(10);
         this.touchAction = 0;
-        this.updateFuncRegisted = false;
+        this._localRect = new Rect(0, 0, 1, 1);
     }
 
     public get id(): string {
@@ -682,12 +684,11 @@ export class GObject extends EventDispatcher {
 
     public clearAllPanelEvent()
     {
-        if (this.updateFuncRegisted)
+        if (this._updateRegisted)
         {
-            this.updateFuncRegisted = false;
-            Timers.remove(this.OnUpdate, this);
+            this._updateRegisted = false;
+            GObject.UnregisterUpdate(this);
         }
-            
     }
 
     public dispose(): void {
@@ -814,6 +815,9 @@ export class GObject extends EventDispatcher {
 
     protected handleSizeChanged(): void {
         this._element.setSize(this._width, this._height);
+
+        this._localRect.width = this._width;
+        this._localRect.height = this._height;
     }
 
     protected handleScaleChanged(): void {
@@ -1037,12 +1041,12 @@ export class GObject extends EventDispatcher {
     protected addEvent(evt : EventType, callback : Function, caller : any)
     {
         this.on(evt, callback, caller);
-        if (evt == 'onTouchBegin' || evt == 'onTouchEnd' || evt == 'onTouchMove')
+        if (evt == "onTouchBegin" || evt == "onTouchMove" || evt == "onTouchEnd")
         {
-            if (this.updateFuncRegisted == false)
+            if (this._updateRegisted == false)
             {
-                this.updateFuncRegisted = true;
-                Timers.addUpdate(this.OnUpdate, this);
+                this._updateRegisted = true;
+                GObject.RegisterUpdate(this);
             }
         }
         else if (PanelEventSet.has(evt))
@@ -1068,45 +1072,49 @@ export class GObject extends EventDispatcher {
         this.removeEvent(evt, callback, caller);
     }
 
-    private callEvent(evt : EventType)
+    private callEvent(evt : EventType, arg ?: any)
     {
-        this.emit(evt);
+        this.emit(evt, arg);
     }
 
-    protected isInsideObject() : boolean
+    protected isInsideObject(gpos ?: any) : boolean
     {
-        var gpos = GameUI.GetCursorPosition();
         var localMousePos = this.globalToLocal(gpos[0], gpos[1]);
-        var objgpos = new Rect(0, 0, this.width, this.height);
-        if (localMousePos.x >= objgpos.xMin && localMousePos.x <= objgpos.xMax
-         && localMousePos.y >= objgpos.yMin && localMousePos.y <= objgpos.yMax)
+        
+        if (localMousePos.x >= this._localRect.xMin && localMousePos.x <= this._localRect.xMax
+         && localMousePos.y >= this._localRect.yMin && localMousePos.y <= this._localRect.yMax)
         {
             return true;
         }
         return false;
     }
 
-    public OnUpdate(): void
+    public SetNativeParent(panel : Panel): void{
+        this._element.nativePanel.SetParent(panel);
+    }
+
+    public SetParent(obj : GComponent)
     {
-        var isMouseDown = GameUI.IsMouseDown(0);
-        if (isMouseDown == true)
+        if (this.parent)
+            this.parent.removeChild(this);
+        obj.addChild(this);
+    }
+
+    public processUpdate(mousePosition : any, isLeftDown : boolean) : void
+    {
+        if (isLeftDown)
         {
             if (this.touchAction == 1)
             {
                 this.callEvent('onTouchMove');
             }
-            if (this.isInsideObject())
+            if (this.isInsideObject(mousePosition))
             {
                 if (this.touchAction == 0)
                 {
                     this.touchAction = 1;
                     this.callEvent('onTouchBegin');
                 }
-            }
-
-            if (GameUI.IsMouseDown(2))
-            {
-                this.callEvent('onMouseWheel');
             }
         }
         else
@@ -1119,15 +1127,67 @@ export class GObject extends EventDispatcher {
         }
     }
 
-    public SetNativeParent(panel : Panel): void{
-        this._element.nativePanel.SetParent(panel);
+    public static RegisterUpdate(thisobj : GObject)
+    {
+        GObject.s_AllUpdateObj.add(thisobj);
     }
 
-    public SetParent(obj : GComponent)
+    public static UnregisterUpdate(thisobj : GObject)
     {
-        if (this.parent)
-            this.parent.removeChild(this);
-        obj.addChild(this);
+        GObject.s_AllUpdateObj.delete(thisobj);
+    }
+
+    protected static OnGlobalUpdate()
+    {
+        $.Schedule(0.01, GObject.OnGlobalUpdate);
+        if (GObject.s_AllUpdateObj.size == 0)
+        {
+            return;
+        }
+
+        let isLeftDown = GameUI.IsMouseDown(0);
+        var pos = GameUI.GetCursorPosition();
+        for(let obj of GObject.s_AllUpdateObj)
+        {
+            obj.processUpdate(pos, isLeftDown);
+        }
+    }
+
+    public static InitGlobalUpdate() : void
+    {
+        GObject.s_AllUpdateObj = new Set<GObject>()
+
+        GObject.OnGlobalUpdate();
+
+        GameUI.SetMouseCallback((eventName : MouseEvent, arg : MouseButton | MouseScrollDirection) => {
+            if (GObject.s_AllUpdateObj.size == 0)
+            {
+                return;
+            }
+
+            let wheelScroll = 0;
+            if (eventName == 'wheeled')
+            {
+                wheelScroll = arg;
+            }
+
+            if (wheelScroll != 0)
+            {
+                for(let obj of GObject.s_AllUpdateObj)
+                {
+                    obj.callEvent('onMouseWheel', wheelScroll);
+                }
+            }
+            
+            let captureMouse = false;
+            if (GObject.mouseCallback)
+            {
+                var ret : boolean = GObject.mouseCallback(eventName, arg);
+                captureMouse = (captureMouse || ret);
+            }
+
+            return captureMouse;
+        });
     }
 }
 
@@ -1146,3 +1206,5 @@ var s_vec2: Vec2 = new Vec2();
 
 export var gInstanceCounter: number = 0;
 export var constructingDepth: { n: number } = { n: 0 };
+
+GObject.InitGlobalUpdate();

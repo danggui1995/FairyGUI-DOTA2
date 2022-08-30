@@ -2,7 +2,6 @@ import { ObjectType, PackageItemType } from "./FieldTypes";
 import { constructingDepth, GObject } from "./GObject";
 import { PackageItem } from "./PackageItem";
 import { ByteBuffer } from "../utils/ByteBuffer";
-import { Event } from "../event/Event";
 import { Margin } from "../math/Margin";
 import { Constructor } from "../utils/ToolSet";
 import { AbUtil } from "../utils/AbUtil";
