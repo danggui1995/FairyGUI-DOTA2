@@ -328,9 +328,9 @@ export class GComboBox extends GComponent {
             this.dropdown.onEvent("removed_from_stage", this.__popupWinClosed, this);
         }
 
-        this.addEvent("onmouseout", this.__rollout, this);
-        this.addEvent("onmouseover", this.__rollover, this);
-        this.addEvent("onactivate",  this.showDropdown, this);
+        this.onEvent("onmouseout", this.__rollout, this);
+        this.onEvent("onmouseover", this.__rollover, this);
+        this.onEvent("onactivate",  this.showDropdown, this);
     }
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {

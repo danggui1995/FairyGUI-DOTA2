@@ -708,6 +708,7 @@ export class GObject extends EventDispatcher {
     }
 
     public dispose(): void {
+        this.clearTouchEvent();
         this._relations.dispose();
         this._element.dispose();
         this._element = null;

@@ -175,8 +175,6 @@ export class GComponent extends GObject {
                     Timers.callLater(this.buildNativeDisplayList, this);
             }
 
-            child.clearTouchEvent();
-
             if (dispose)
                 child.dispose();
 
