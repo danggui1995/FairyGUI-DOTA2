@@ -15,9 +15,26 @@ interface VCSSStyleDeclaration {
     animationDelay: string | null;
     animationDirection: string | null;
     animationDuration: string | null;
+    animationFillMode: string | null;
     animationIterationCount: string | null;
     animationName: string | null;
     animationTimingFunction: string | null;
+
+
+    /**
+     *  === background-blur ===
+     * Sets the amount of blur to apply to the contents behind this panel during composition.  
+     * Default is no blur, for now Gaussian is the only blur type and takes a horizontal standard deviation, 
+     * vertical standard deviation, and number of passes.  
+     * Good std deviation values are around 0-10, if 10 is still not intense enough consider more passes, 
+     * but more than one pass is bad for perf.  As shorthand you can specify with just one value, 
+     * which will be used for the standard deviation in both directions and 1 pass will be set.
+     * Examples: 
+     *  background-blur: gaussian( 2.5 );
+     *  background-blur: gaussian( 6, 6, 1 );
+     */
+    backgroundBlur : string | null;
+   
 
     /**
      * Sets the background fill color/gradient/combination for a panel.
@@ -736,6 +753,12 @@ interface VCSSStyleDeclaration {
      */
     transitionDuration: string | null;
 
+    /*=== transition-high-framerate ===
+    Specifies the desire for higher framerate during this transition, if we have control.<br><br><b>Examples:</b><pre>transition-high-framerate: true;
+    transition-high-framerate: false, true, false;</pre>
+    */
+    transitionHighFramerate : boolean | null;
+
     /**
      * Specifies which properties should transition smoothly to new values if a class/pseudo class changes the styles.
      *
@@ -833,6 +856,14 @@ interface VCSSStyleDeclaration {
      * "height-percentage( <percentage> )" - Percentage of the panel's height, which allows you to enforce a particular aspect ratio.  The height cannot also be width-percentage.
      */
     width: string | null;
+
+
+    /**
+     *  === world-blur ===
+     * Sets the amount of blur to apply to the world / backbuffer before drawing.<br><br><b>Examples:</b><pre>world-blur: gaussian( 2.5 );
+     * world-blur: gaussian( 6, 6, 1 );world-blur: mipmapgaussian( 6, 6, 4 );  In this version each gaussian pass is preceded by a quarter area downsample.</pre>
+     */
+    worldBlur : string | null;
 
     /**
      * Sets the x, y, z position for a panel. Must not be in a flowing layout.

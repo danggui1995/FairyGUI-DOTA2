@@ -397,9 +397,9 @@ export class GObject extends EventDispatcher {
         this.setPivot(this._pivotX, value);
     }
 
-    public setPivot(xv: number, yv: number, asAnchor?: boolean, force ?: boolean): void {
+    public setPivot(xv: number, yv: number, asAnchor?: boolean): void {
         asAnchor = asAnchor || false;
-        if (this._pivotX != xv || this._pivotY != yv || this._pivotAsAnchor != asAnchor || force) {
+        if (this._pivotX != xv || this._pivotY != yv || this._pivotAsAnchor != asAnchor) {
             this._pivotX = xv;
             this._pivotY = yv;
             this._pivotAsAnchor = asAnchor;
@@ -947,11 +947,7 @@ export class GObject extends EventDispatcher {
             f2 = buffer.readFloat();
             this.setPivot(f1, f2, buffer.readBool());
         }
-        else
-        {
-            this.setPivot(0, 0, false, true);
-        }
-
+        
         f1 = buffer.readFloat();
         if (f1 != 1)
             this.alpha = f1;
