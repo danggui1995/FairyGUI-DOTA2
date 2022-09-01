@@ -28,7 +28,8 @@ export class Shape extends UIElement {
             if (this._type != 0)
             {
                 this._color = value;
-                this.nativePanel.style.backgroundColor = convertToHtmlColor(value);
+                if (this.forbidStyleModify == false)
+                    this.nativePanel.style.backgroundColor = convertToHtmlColor(value);
             }
         }
     }

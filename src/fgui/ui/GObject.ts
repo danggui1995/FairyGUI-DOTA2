@@ -377,7 +377,7 @@ export class GObject extends EventDispatcher {
         if (this._skewX != sx || this._skewY != sy) {
             this._skewX = sx;
             this._skewY = sy;
-            //todo skew
+            //todo skew 好像没啥实现的必要
         }
     }
 
@@ -1157,9 +1157,18 @@ export class GObject extends EventDispatcher {
 
     public AddClass(clsName : string) : void
     {
-        if(this._element.nativePanel)
+        if (this._element && this._element.nativePanel)
         {
+            this._element.nativePanel.RemoveClass(clsName);
             this._element.nativePanel.AddClass(clsName);
+        }
+    }
+
+    public RemoveClass(clsName : string) : void
+    {
+        if (this._element && this._element.nativePanel)
+        {
+            this._element.nativePanel.RemoveClass(clsName);
         }
     }
 
