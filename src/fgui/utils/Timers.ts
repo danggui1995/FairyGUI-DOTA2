@@ -6,6 +6,7 @@ export class Timers {
     public static frameCount: number = 0;
 
     public static add(delayInMiniseconds: number, repeat: number, callback: Function, target?: any, callbackParam?: any): void {
+        delayInMiniseconds /= 1000;
         let item: TimerItem;
         let index = _items.findIndex(e => e.target == target && e.callback == callback);
         if (index != -1)
@@ -135,7 +136,7 @@ let tickFunc : any;
 let tickInterval = 1 / 60;
 tickFunc = function()
 {
-    __timer(Game.Time() * 1000);
+    __timer(Game.Time());
     $.Schedule(tickInterval, tickFunc);
 }
 

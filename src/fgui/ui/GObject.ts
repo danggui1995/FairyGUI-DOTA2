@@ -62,6 +62,8 @@ export const PanelEventSet = new Set<string>([
     "onvaluechanged"
 ]);
 
+export const MouseOverStyle = "TouchHolder";
+
 export class GObject extends EventDispatcher {
     public data?: any;
     public packageItem?: PackageItem;
@@ -83,6 +85,7 @@ export class GObject extends EventDispatcher {
     private _skewY: number = 0;
     private _pivotX: number = 0;
     private _pivotY: number = 0;
+    private _pivotStr : string;
     private _pivotAsAnchor: boolean;
     private _sortingOrder: number = 0;
     private _internalVisible: boolean = true;
@@ -95,7 +98,6 @@ export class GObject extends EventDispatcher {
     private _gears: GearBase[];
 
     protected _element?: UIElement;
-    protected _localRect : Rect;
 
     public minWidth: number = 0;
     public minHeight: number = 0;
@@ -146,8 +148,8 @@ export class GObject extends EventDispatcher {
         this._relations = new Relations(this);
         this._gears = new Array<GearBase>(10);
         this.touchAction = 0;
-        this._localRect = new Rect(0, 0, 1, 1);
         this._updateRegisted = false;
+        this._pivotStr = "0% 0%";
     }
 
     public get id(): string {
@@ -395,15 +397,21 @@ export class GObject extends EventDispatcher {
         this.setPivot(this._pivotX, value);
     }
 
-    public setPivot(xv: number, yv: number, asAnchor?: boolean): void {
+    public setPivot(xv: number, yv: number, asAnchor?: boolean, force ?: boolean): void {
         asAnchor = asAnchor || false;
-        if (this._pivotX != xv || this._pivotY != yv || this._pivotAsAnchor != asAnchor) {
+        if (this._pivotX != xv || this._pivotY != yv || this._pivotAsAnchor != asAnchor || force) {
             this._pivotX = xv;
             this._pivotY = yv;
             this._pivotAsAnchor = asAnchor;
+            this._pivotStr = `${xv * 100}% ${yv * 100}%`;
             this._element.setPivot(xv, yv);
             this.handlePositionChanged();
         }
+    }
+
+    public getPivotPercent(): string
+    {
+        return this._pivotStr;
     }
 
     public get pivotAsAnchor(): boolean {
@@ -830,9 +838,6 @@ export class GObject extends EventDispatcher {
 
     protected handleSizeChanged(): void {
         this._element.setSize(this._width, this._height);
-
-        this._localRect.width = this._width;
-        this._localRect.height = this._height;
     }
 
     protected handleScaleChanged(): void {
@@ -941,6 +946,10 @@ export class GObject extends EventDispatcher {
             f1 = buffer.readFloat();
             f2 = buffer.readFloat();
             this.setPivot(f1, f2, buffer.readBool());
+        }
+        else
+        {
+            this.setPivot(0, 0, false, true);
         }
 
         f1 = buffer.readFloat();
@@ -1062,6 +1071,12 @@ export class GObject extends EventDispatcher {
             {
                 this._updateRegisted = true;
                 GObject.RegisterUpdate(this);
+
+                let nativePanel = this.GetNativePanel();
+                if (nativePanel)
+                {
+                    nativePanel.AddClass(MouseOverStyle);
+                }
             }
         }
         else if (PanelEventSet.has(evt))
@@ -1094,10 +1109,8 @@ export class GObject extends EventDispatcher {
 
     protected isInsideObject(gpos ?: any) : boolean
     {
-        var localMousePos = this.globalToLocal(gpos[0], gpos[1]);
-        
-        if (localMousePos.x >= this._localRect.xMin && localMousePos.x <= this._localRect.xMax
-         && localMousePos.y >= this._localRect.yMin && localMousePos.y <= this._localRect.yMax)
+        let nativePanel = this.GetNativePanel();
+        if (nativePanel && nativePanel.BHasHoverStyle())
         {
             return true;
         }
@@ -1115,7 +1128,7 @@ export class GObject extends EventDispatcher {
         obj.addChild(this);
     }
 
-    public processUpdate(mousePosition : any, isLeftDown : boolean) : void
+    public processUpdate(isLeftDown : boolean) : void
     {
         if (isLeftDown)
         {
@@ -1123,7 +1136,7 @@ export class GObject extends EventDispatcher {
             {
                 this.callEvent('onTouchMove');
             }
-            if (this.isInsideObject(mousePosition))
+            if (this.isInsideObject())
             {
                 if (this.touchAction == 0)
                 {
@@ -1139,6 +1152,14 @@ export class GObject extends EventDispatcher {
                 this.callEvent('onTouchEnd');
                 this.touchAction = 0;
             }
+        }
+    }
+
+    public AddClass(clsName : string) : void
+    {
+        if(this._element.nativePanel)
+        {
+            this._element.nativePanel.AddClass(clsName);
         }
     }
 
@@ -1161,10 +1182,9 @@ export class GObject extends EventDispatcher {
         }
 
         let isLeftDown = GameUI.IsMouseDown(0);
-        var pos = GameUI.GetCursorPosition();
         for(let obj of GObject.s_AllUpdateObj)
         {
-            obj.processUpdate(pos, isLeftDown);
+            obj.processUpdate(isLeftDown);
         }
     }
 

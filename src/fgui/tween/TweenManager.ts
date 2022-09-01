@@ -68,7 +68,7 @@ export class TweenManager {
     }
 
     public static update(): void {
-        var dt: number = Timers.deltaTime / 1000;
+        var dt: number = Timers.deltaTime;
 
         var cnt: number = _totalActiveTweens;
         var freePosStart: number = -1;

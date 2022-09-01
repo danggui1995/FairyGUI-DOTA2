@@ -36,6 +36,7 @@ export class UIElement extends DotaPanel {
     public _lastFocus?: UIElement;
     /** @internal */
     public _isRoot ?: boolean;
+    public forbidStyleModify : boolean;
 
     private _gTouchable : boolean;
 
@@ -58,6 +59,7 @@ export class UIElement extends DotaPanel {
         this._tabStop = false;
         this._tabStopChildren = false;
         this._gTouchable = undefined;
+        this.forbidStyleModify = false;
     }
 
     public initElement()
@@ -89,8 +91,12 @@ export class UIElement extends DotaPanel {
     public setPosition(x: number, y: number): void {
         if (this._pos.x != x || this._pos.y != y) {
             this._pos.set(x, y);
-            this.nativePanel.style.marginLeft = x + "px";
-            this.nativePanel.style.marginTop = y + "px";
+
+            if (this.forbidStyleModify == false)
+            {
+                this.nativePanel.style.marginLeft = x + "px";
+                this.nativePanel.style.marginTop = y + "px";
+            }
         }
     }
 
@@ -123,8 +129,11 @@ export class UIElement extends DotaPanel {
     }
 
     protected onSizeChanged(): void {
-        this.nativePanel.style.width = this._contentRect.width + "px";
-        this.nativePanel.style.height = this._contentRect.height + "px";
+        if (this.forbidStyleModify == false)
+        {
+            this.nativePanel.style.width = this._contentRect.width + "px";
+            this.nativePanel.style.height = this._contentRect.height + "px";
+        }
     }
 
     public get pivotX(): number {
@@ -142,10 +151,13 @@ export class UIElement extends DotaPanel {
     }
 
     public setPivot(xv: number, yv: number): void {
-        if (this._pivot.x != xv || this._pivot.y != yv) {
+        // if (this._pivot.x != xv || this._pivot.y != yv) {
             this._pivot.set(xv, yv);
-            this.nativePanel.style.transformOrigin = this._pivot.x + "% " + this._pivot.y + "%";
-        }
+            if (this.forbidStyleModify == false)
+            {
+                this.nativePanel.style.transformOrigin = `${this._pivot.x * 100}% ${this._pivot.y * 100}%`;
+            }
+        // }
     }
 
     public get flip(): FlipType {
@@ -253,7 +265,10 @@ export class UIElement extends DotaPanel {
     public set alpha(value: number) {
         if (this._alpha != value) {
             this._alpha = value;
-            this.nativePanel.style.opacity = this._alpha.toFixed(3);
+            if (this.forbidStyleModify == false)
+            {
+                this.nativePanel.style.opacity = this._alpha.toFixed(3);
+            }
         }
     }
 

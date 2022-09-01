@@ -1717,7 +1717,7 @@ export class ScrollPane {
     private runTween(axis: AxisType): number {
         var newValue: number;
         if (this._tweenChange[axis] != 0) {
-            this._tweenTime[axis] += Timers.deltaTime / 1000;
+            this._tweenTime[axis] += Timers.deltaTime;
             if (this._tweenTime[axis] >= this._tweenDuration[axis]) {
                 newValue = this._tweenStart[axis] + this._tweenChange[axis];
                 this._tweenChange[axis] = 0;

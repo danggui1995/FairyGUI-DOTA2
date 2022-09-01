@@ -87,7 +87,18 @@ export class Transition {
         this._endTime = endTime || -1;
         this._playing = true;
         this._paused = false;
-        this._onComplete = onComplete;
+        this._onComplete = () => {
+            if (onComplete)
+            {
+                onComplete();
+            }
+            if (this._items.length > 0)
+            {
+                let item = this._items[0];
+                if (item.target && item.target.element)
+                    item.target.element.forbidStyleModify = false;
+            }
+        };
 
         var cnt: number = this._items.length;
         for (var i: number = 0; i < cnt; i++) {
@@ -130,10 +141,19 @@ export class Transition {
             }
         }
 
-        if (delay == 0)
-            this.onDelayedPlay();
-        else
-            GTween.delayedCall(delay).setTarget(this).onComplete(this.onDelayedPlay, this);
+        if (cnt > 0)
+        {
+            let item = this._items[0];
+            let transitionClassName = `${item.fileName}_${item.name}_${item.targetId}`;
+            item.target.AddClass(transitionClassName);
+            item.target.element.forbidStyleModify = true;
+
+            //这里更新Fgui的信息 实际不作展示
+            if (delay == 0)
+                this.onDelayedPlay();
+            else
+                GTween.delayedCall(delay).setTarget(this).onComplete(this.onDelayedPlay, this);
+        }
     }
 
     public stop(setToComplete?: boolean, processCallback?: boolean): void {
@@ -721,7 +741,7 @@ export class Transition {
             target.setProp(ObjectPropID.Playing, playStartTime >= 0);
             target.setProp(ObjectPropID.Frame, frame);
             if (playTotalTime > 0)
-                target.setProp(ObjectPropID.DeltaTime, playTotalTime * 1000);
+                target.setProp(ObjectPropID.DeltaTime, playTotalTime);
         }
     }
 
@@ -1058,6 +1078,8 @@ export class Transition {
             buffer.seek(curPos, 0);
 
             var item: Item = new Item(buffer.readByte());
+            item.name = this.name;
+            item.fileName = this._owner.panelName;
             this._items[i] = item;
 
             item.time = buffer.readFloat();
@@ -1235,6 +1257,8 @@ class Item {
     public tweener?: GTweener;
     public target: GObject;
     public displayLockToken: number;
+    public name: string;
+    public fileName: string;
 
     constructor(type: number) {
         this.type = type;
