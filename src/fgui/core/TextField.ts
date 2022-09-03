@@ -39,8 +39,8 @@ export class TextField extends UIElement {
     public init() {
         super.init();
 
-        this._container = $.CreatePanel( "Panel", $('#HiddenRoot'), this.$owner.panelName);
-        this._label = $.CreatePanel( "Label", this._container, this.$owner.panelName);
+        this._container = $.CreatePanel( "Panel", $('#HiddenRoot'), this.$owner.name);
+        this._label = $.CreatePanel( "Label", this._container, this.$owner.name);
         this.nativePanel = this._container;
     }
 

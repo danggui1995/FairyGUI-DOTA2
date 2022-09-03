@@ -58,7 +58,7 @@ export class Image extends UIElement {
     }
 
     public init() {
-        this.nativePanel = $.CreatePanel( "Image", $('#HiddenRoot'), this.$owner.panelName);
+        this.nativePanel = $.CreatePanel( "Image", $('#HiddenRoot'), this.$owner.name);
     }
 
     public get src(): string {

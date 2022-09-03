@@ -1816,13 +1816,14 @@ interface DollarStatic {
         event: 'DragStart',
         parent: PanelBase,
         handler: (panelID: string, settings: DragSettings) => boolean,
-    ): void;
+    ): any;
     RegisterEventHandler(
         event: 'DragEnd' | 'DragDrop' | 'DragEnter' | 'DragLeave',
         parent: PanelBase,
         handler: (panelID: string, dragged: Panel) => boolean,
-    ): void;
-    RegisterEventHandler(event: string, parent: PanelBase, handler: (...args: any[]) => void): void;
+    ): any;
+    RegisterEventHandler(event: string, parent: PanelBase, handler: any): any;
+    UnregisterEventHandler(event: string, parent: PanelBase, handler: any);
     RegisterForUnhandledEvent(event: string, handler: (...args: any[]) => void): UnhandledEventListenerID;
     UnregisterForUnhandledEvent(event: string, handle: UnhandledEventListenerID): void;
     Each<T>(list: T[], callback: (item: T, index: number) => void): void;

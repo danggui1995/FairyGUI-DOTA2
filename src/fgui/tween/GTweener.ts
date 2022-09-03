@@ -1,8 +1,9 @@
-import { EaseType } from "./EaseType";
+import { EaseType, getEasePanorama } from "./EaseType";
 import { GPath } from "./GPath";
-import { TweenValue } from "./TweenValue";
+import { ActionType, TweenValue } from "./TweenValue";
 import { evaluateEase } from "./EaseManager";
 import { Vec2 } from "../math/Vec2";
+import { convertToHtmlColor } from "../utils/ToolSet";
 
 var s_vec2: Vec2 = new Vec2();
 
@@ -43,11 +44,16 @@ export class GTweener {
     private _elapsedTime: number;
     private _normalizedTime: number;
 
+    public actionType: ActionType;
+    public endTime: number;
+    public originValue: TweenValue;
+
     public constructor() {
         this._startValue = new TweenValue();
         this._endValue = new TweenValue();
         this._value = new TweenValue();
         this._deltaValue = new TweenValue();
+        this.originValue = new TweenValue();
 
         this._reset();
     }
@@ -78,6 +84,10 @@ export class GTweener {
     public setEase(value: number): GTweener {
         this._easeType = value;
         return this;
+    }
+    
+    public get easeType(): EaseType {
+        return this._easeType;
     }
 
     public setEasePeriod(value: number): GTweener {
@@ -114,6 +124,11 @@ export class GTweener {
         this._target = value;
         this._propType = propType;
         return this;
+    }
+
+    public setActionType(action: ActionType): void
+    {
+        this.actionType = action;
     }
 
     public get target(): any {
@@ -224,16 +239,17 @@ export class GTweener {
         this._killed = true;
     }
 
-    public _to(start: number, end: number, duration: number): GTweener {
+    public _to(start: number, end: number, duration: number, actonType?: ActionType): GTweener {
         this._valueSize = 1;
         this._startValue.x = start;
         this._endValue.x = end;
         this._value.x = start;
         this._duration = duration;
+        this.actionType = actonType;
         return this;
     }
 
-    public _to2(start: number, start2: number, end: number, end2: number, duration: number): GTweener {
+    public _to2(start: number, start2: number, end: number, end2: number, duration: number, actonType?: ActionType): GTweener {
         this._valueSize = 2;
         this._startValue.x = start;
         this._endValue.x = end;
@@ -242,11 +258,12 @@ export class GTweener {
         this._value.x = start;
         this._value.y = start2;
         this._duration = duration;
+        this.actionType = actonType;
         return this;
     }
 
     public _to3(start: number, start2: number, start3: number,
-        end: number, end2: number, end3: number, duration: number): GTweener {
+        end: number, end2: number, end3: number, duration: number, actonType?: ActionType): GTweener {
         this._valueSize = 3;
         this._startValue.x = start;
         this._endValue.x = end;
@@ -258,11 +275,12 @@ export class GTweener {
         this._value.y = start2;
         this._value.z = start3;
         this._duration = duration;
+        this.actionType = actonType;
         return this;
     }
 
     public _to4(start: number, start2: number, start3: number, start4: number,
-        end: number, end2: number, end3: number, end4: number, duration: number): GTweener {
+        end: number, end2: number, end3: number, end4: number, duration: number, actonType?: ActionType): GTweener {
         this._valueSize = 4;
         this._startValue.x = start;
         this._endValue.x = end;
@@ -277,24 +295,27 @@ export class GTweener {
         this._value.z = start3;
         this._value.w = start4;
         this._duration = duration;
+        this.actionType = actonType;
         return this;
     }
 
-    public _toColor(start: number, end: number, duration: number): GTweener {
+    public _toColor(start: number, end: number, duration: number, actonType?: ActionType): GTweener {
         this._valueSize = 4;
         this._startValue.color = start;
         this._endValue.color = end;
         this._value.color = start;
         this._duration = duration;
+        this.actionType = actonType;
         return this;
     }
 
-    public _shake(startX: number, startY: number, amplitude: number, duration: number): GTweener {
+    public _shake(startX: number, startY: number, amplitude: number, duration: number, actonType?: ActionType): GTweener {
         this._valueSize = 5;
         this._startValue.x = startX;
         this._startValue.y = startY;
         this._startValue.w = amplitude;
         this._duration = duration;
+        this.actionType = actonType;
         return this;
     }
 
@@ -365,7 +386,7 @@ export class GTweener {
         if (!this._started) {
             if (this._elapsedTime < this._delay)
                 return;
-
+            
             this._started = true;
             this.callStartCallback();
             if (this._killed)
@@ -476,6 +497,27 @@ export class GTweener {
         this.callUpdateCallback();
     }
 
+    private onTweenStart(target: any): void
+    {
+        target.nativePanel.style.transition = null;
+        switch(this.actionType)
+        {
+            case ActionType.XY:
+            {
+                target.nativePanel.style.marginLeft = this._startValue.x + "px";
+                target.nativePanel.style.marginTop = this._startValue.y + "px";
+                break;
+            }
+            // case ActionType.Scale:
+            // {
+            //     target.nativePanel.style.marginLeft = this._startValue.x + "px";
+            //     target.nativePanel.style.marginTop = this._startValue.y + "px";
+            //     break;
+            // }
+                 
+        }
+    }
+
     private callStartCallback(): void {
         if (this._onStart) {
             try {
@@ -501,6 +543,17 @@ export class GTweener {
     private callCompleteCallback(): void {
         if (this._onComplete) {
             try {
+                if (this.actionType != undefined)
+                {
+                    if (this._target && this._target.element)
+                    {
+                        this._target.element.removeTween(this.actionType);
+                    }
+                    else if (this._target.target && this._target.target.element)
+                    {
+                        this._target.target.element.removeTween(this.actionType);
+                    }
+                }
                 this._onComplete.call(this._onCompleteCaller, this);
             }
             catch (err) {
@@ -508,5 +561,97 @@ export class GTweener {
             }
         }
     }
+
+    public playNative():void
+    {
+        if (this.target && this.target.element)
+        {
+            let endx = this.endValue.x;
+            let endy = this.endValue.y;
+            let csstween;
+            switch(this.actionType)
+            {
+                case ActionType.XY:
+                {
+                    let newx = endx - this.startValue.x;
+                    let newy = endy - this.startValue.y;
+                    csstween = new CssTween("transform", `translate3d(${newx}px, ${newy}px, 0px)`, 4);
+                    break;
+                }
+                case ActionType.Rotation:
+                {
+                    csstween = new CssTween("transform", `rotateZ(${endx}deg)`, 1);
+                    break;
+                }
+                case ActionType.Scale:
+                {
+                    csstween = new CssTween("transform", `scale3d(${endx}, ${endy}, 1)`, 3);
+                    break;
+                }
+                case ActionType.Size:
+                {
+                    let tween1 = new CssTween("width", `${endx}px`, 0);
+                    let tween2 = new CssTween("height", `${endy}px`, 0);
+                    this.target.element.appendTween(tween1);
+                    this.target.element.appendTween(tween2);
+                    break;
+                }
+                case ActionType.Alpha:
+                {
+                    csstween = new CssTween("opacity", `${endx}px`, 0);
+                    break;
+                }
+                case ActionType.Color:
+                {
+                    csstween = new CssTween("background-color", `${convertToHtmlColor(this.endValue.color)}`, 0);
+                    break;
+                }
+                case ActionType.Skew:
+                {
+                    csstween = new CssTween("transform", `skew(${endx}deg, ${endy}deg)`, 0);
+                    break;
+                }
+                default:
+                {
+                    $.Msg("unsupported tween type:" + ActionType[this.actionType]);
+                }
+            }
+            if (csstween)
+            {
+                csstween.ease = getEasePanorama(this.easeType);
+                csstween.duration = this.duration;
+                csstween.delay = this.delay;
+                this.target.element.appendTween(csstween);
+            }
+        }
+    }
 }
 
+export class CssTween
+{
+    public propType : string;
+    public propValue : string;
+    public ease : string;
+    public unique : string;
+
+    public delay : number;
+    public priority : number;
+    public endTime : number;
+
+    public constructor(v1:string, v2:string, v6:number)
+    {
+        this.propType = v1;
+        this.propValue = v2;
+        this.priority = v6;
+        this.unique = `${v1}_${v6}`;
+    }
+
+    public set duration(value: number)
+    {
+        this.endTime = Game.Time() + value;
+    };
+    public get duration(): number
+    {
+        return this.endTime - Game.Time();
+    }
+}

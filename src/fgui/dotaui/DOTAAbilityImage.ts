@@ -10,7 +10,7 @@ export class DOTAAbilityImage extends UIElement {
     }
 
     public init() {
-        this.nativePanel = $.CreatePanel( "DOTAAbilityImage", $('#HiddenRoot'), this.$owner.panelName);
+        this.nativePanel = $.CreatePanel( "DOTAAbilityImage", $('#HiddenRoot'), this.$owner.name);
     }
 
     public get abilityname(): string {

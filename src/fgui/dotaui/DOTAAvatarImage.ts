@@ -16,7 +16,7 @@ export class DOTAAvatarImage extends UIElement {
     }
 
     public init() {
-        this.nativePanel = $.CreatePanel( "DOTAAvatarImage", $('#HiddenRoot'), this.$owner.panelName);
+        this.nativePanel = $.CreatePanel( "DOTAAvatarImage", $('#HiddenRoot'), this.$owner.name);
     }
 
     public SetAccountID(accountid: number): void

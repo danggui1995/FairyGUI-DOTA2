@@ -9,7 +9,7 @@ export class DOTAItemImage extends UIElement {
     }
 
     public init() {
-        this.nativePanel = $.CreatePanel( "DOTAItemImage", $('#HiddenRoot'), this.$owner.panelName);
+        this.nativePanel = $.CreatePanel( "DOTAItemImage", $('#HiddenRoot'), this.$owner.name);
     }
 
     public get itemname(): string {

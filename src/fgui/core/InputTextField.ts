@@ -31,7 +31,7 @@ export class InputTextField extends UIElement {
     public init() {
         super.init();
 
-        this._input = $.CreatePanel( "TextEntry", $('#HiddenRoot'), this.$owner.panelName);
+        this._input = $.CreatePanel( "TextEntry", $('#HiddenRoot'), this.$owner.name);
         if (this._singleLine) {
             this._input.style.whiteSpace = "nowrap";
         } else {

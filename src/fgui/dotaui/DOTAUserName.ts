@@ -9,7 +9,7 @@ export class DOTAUserName extends UIElement {
     }
 
     public init() {
-        this.nativePanel = $.CreatePanel( "DOTAUserName", $('#HiddenRoot'), this.$owner.panelName);
+        this.nativePanel = $.CreatePanel( "DOTAUserName", $('#HiddenRoot'), this.$owner.name);
     }
 
     public get steamid(): string {

@@ -34,3 +34,61 @@ export enum EaseType {
     Custom = 31,
 }
 
+export function getEasePanorama(easeType : EaseType): string
+{
+    switch(easeType)
+    {
+        case EaseType.BackIn:
+        case EaseType.BounceIn:
+        case EaseType.CircIn:
+        case EaseType.CubicIn:
+        case EaseType.ElasticIn:
+        case EaseType.QuadIn:
+        case EaseType.QuartIn:
+        case EaseType.QuintIn:
+        case EaseType.SineIn:
+        case EaseType.ExpoIn:
+        {
+            return "ease-in";
+        }
+
+        case EaseType.BackOut:
+        case EaseType.BounceOut:
+        case EaseType.CircOut:
+        case EaseType.CubicOut:
+        case EaseType.ElasticOut:
+        case EaseType.QuadOut:
+        case EaseType.QuartOut:
+        case EaseType.QuintOut:
+        case EaseType.SineOut:
+        case EaseType.ExpoOut:
+        {
+            return "ease-out";
+        }
+
+        case EaseType.BackInOut:
+        case EaseType.BounceInOut:
+        case EaseType.CircInOut:
+        case EaseType.CubicInOut:
+        case EaseType.ElasticInOut:
+        case EaseType.QuadInOut:
+        case EaseType.QuartInOut:
+        case EaseType.QuintInOut:
+        case EaseType.SineInOut:
+        case EaseType.ExpoInOut:
+        {
+            return "ease-in-out";
+        }
+
+        case EaseType.Linear:
+        {
+            return "linear";
+        }
+        case EaseType.Custom:
+        {
+            // return `cubic-bezier(${})`;
+            //TODO 不知道这里怎么对应  后续有时间再看看
+            return "ease";
+        }
+    }
+}

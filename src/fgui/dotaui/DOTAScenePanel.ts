@@ -66,9 +66,9 @@ export class DOTAScenePanel extends UIElement {
     {
         if (this.effectPanel != undefined)
         {
-            this.effectPanel.DeleteAsync(0);
+            this.effectPanel.DeleteAsync(1);
         }
-        this.effectPanel = $.CreatePanelWithProperties('DOTAParticleScenePanel', this.nativePanel, this.$owner.panelName, {
+        this.effectPanel = $.CreatePanelWithProperties('DOTAParticleScenePanel', this.nativePanel, this.$owner.name, {
             particleName : effectPath,
             startActive : true,
             cameraOrigin : "0 0 " + ((height != undefined) ? height : this.width),
@@ -110,9 +110,9 @@ export class DOTAScenePanel extends UIElement {
     {
         if (this.scenePanel != undefined)
         {
-            this.scenePanel.DeleteAsync(0);
+            this.scenePanel.DeleteAsync(1);
         }
-        this.scenePanel = $.CreatePanelWithProperties('DOTAScenePanel', this.nativePanel, this.$owner.panelName, {
+        this.scenePanel = $.CreatePanelWithProperties('DOTAScenePanel', this.nativePanel, this.$owner.name, {
             light : this.light,
             antialias : this.antialias,
             renderdeferred : this.renderdeferred,
@@ -135,7 +135,7 @@ export class DOTAScenePanel extends UIElement {
     }
 
     public init() {
-        this.nativePanel = $.CreatePanel( "Panel", $('#HiddenRoot'), this.$owner.panelName);
+        this.nativePanel = $.CreatePanel( "Panel", $('#HiddenRoot'), this.$owner.name);
     }
 
     public FireEntityInput(entityID: string, inputName: string, value: string): void

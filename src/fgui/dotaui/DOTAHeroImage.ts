@@ -10,7 +10,7 @@ export class DOTAHeroImage extends UIElement {
     }
 
     public init() {
-        this.nativePanel = $.CreatePanel( "DOTAHeroImage", $('#HiddenRoot'), this.$owner.panelName);
+        this.nativePanel = $.CreatePanel( "DOTAHeroImage", $('#HiddenRoot'), this.$owner.name);
     }
 
     public get heroid(): HeroID {

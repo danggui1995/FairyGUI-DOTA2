@@ -64,6 +64,7 @@ export { EventDispatcher } from "./event/EventDispatcher";
 export { GTween } from "./tween/GTween";
 export { GTweener } from "./tween/GTweener";
 export { EaseType } from "./tween/EaseType";
+export { ActionType } from "./tween/TweenValue";
 
 export { UBBParser } from "./utils/UBBParser";
 export { ByteBuffer } from "./utils/ByteBuffer";;

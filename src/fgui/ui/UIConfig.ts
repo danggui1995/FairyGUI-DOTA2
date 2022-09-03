@@ -79,6 +79,8 @@ export class UIConfig {
     public static GetItemUrl(pkgName : string, fileName : string) : string{
         return UIConfig.ouputDir + fileName.replace(pkgName, pkgName + "/");
     }
+
+    public static useNativeTransition : boolean = true;
 }
 
 // let dpr = window.devicePixelRatio;

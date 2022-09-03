@@ -1,6 +1,7 @@
 import { UIElement } from "../core/UIElement";
 import { EventType } from "../event/Event";
 import { EventDispatcher } from "../event/EventDispatcher";
+import { GTweener } from "../FairyGUI";
 import { GearAnimation } from "../gears/GearAnimation";
 import { GearBase } from "../gears/GearBase";
 import { GearColor } from "../gears/GearColor";
@@ -134,11 +135,13 @@ export class GObject extends EventDispatcher {
     
     public panelName : string;
     public touchAction : 0 | 1;
+    public tweener : GTweener;
+    private _registedEvents : Map<string, any>;
     
     constructor(name ?: string) {
         super();
         this._id = "" + gInstanceCounter++;
-        this._name = "";
+        this._name = name;
         
         this.panelName = name;
 
@@ -150,6 +153,7 @@ export class GObject extends EventDispatcher {
         this.touchAction = 0;
         this._updateRegisted = false;
         this._pivotStr = "0% 0%";
+        this._registedEvents = new Map<string, any>();
     }
 
     public get id(): string {
@@ -188,8 +192,8 @@ export class GObject extends EventDispatcher {
         this.setPosition(this._x, this._y, value);
     }
 
-    public setPosition(xv: number, yv: number, zv?: number): void {
-        if (this._x != xv || this._y != yv) {
+    public setPosition(xv: number, yv: number, zv?: number, force?: boolean): void {
+        if (this._x != xv || this._y != yv || force) {
             var dx: number = xv - this._x;
             var dy: number = yv - this._y;
             this._x = xv;
@@ -462,6 +466,14 @@ export class GObject extends EventDispatcher {
         }
     }
 
+    public setRotation(value:number):void
+    {
+        if (this._element.rotation != value) {
+            this._element.rotation = value;
+            this.updateGear(3);
+        }
+    }
+
     public get alpha(): number {
         return this._alpha;
     }
@@ -713,6 +725,10 @@ export class GObject extends EventDispatcher {
     public clearTouchEvent()
     {
         this.clearAllPanelEvent();
+        for(let [evt, any] of this._registedEvents)
+        {
+            this.UnregisterEventHandler(evt, this.element.nativePanel);
+        }
     }
 
     public dispose(): void {
@@ -832,7 +848,6 @@ export class GObject extends EventDispatcher {
             xv -= this._pivotX * this._width;
             yv -= this._pivotY * this._height;
         }
-
         this._element.setPosition(xv, yv);
     }
 
@@ -1007,6 +1022,25 @@ export class GObject extends EventDispatcher {
         }
     }
 
+    public RegisterEventHandler(evt: string, panel: PanelBase, func:Function):any
+    {
+        if (!this._registedEvents.has(evt))
+        {
+            var handler = $.RegisterEventHandler(evt, this.GetNativePanel(), func);
+            this._registedEvents.set(evt, handler);
+        }
+    }
+
+    public UnregisterEventHandler(evt: string, panel: PanelBase):void
+    {
+        let handler = this._registedEvents.get(evt);
+        if (handler)
+        {
+            $.UnregisterEventHandler(evt, panel, handler);
+            this._registedEvents.delete(evt);
+        }
+    }
+
     //drag support
     //-------------------------------------------------------------------
 
@@ -1014,19 +1048,19 @@ export class GObject extends EventDispatcher {
         var nativePanel : Panel = this.GetNativePanel();
         if (this._draggable) {
             nativePanel.SetDraggable(true);
-            $.RegisterEventHandler( 'DragEnter', nativePanel, (panelID: string, dragged: Panel) => {
+            this.RegisterEventHandler( 'DragEnter', nativePanel, (panelID: string, dragged: Panel) => {
                 this.emit.call(this, 'drag_enter');
                 return true;
             });
-            $.RegisterEventHandler( 'DragDrop', nativePanel,  (panelID: string, dragged: Panel) => {
+            this.RegisterEventHandler( 'DragDrop', nativePanel,  (panelID: string, dragged: Panel) => {
                 this.emit.call(this, 'drag_drop');
                 return true;
             });
-            $.RegisterEventHandler( 'DragLeave', nativePanel, (panelID: string, dragged: Panel) => {
+            this.RegisterEventHandler( 'DragLeave', nativePanel, (panelID: string, dragged: Panel) => {
                 this.emit.call(this, 'drag_leave');
                 return true;
             });
-            $.RegisterEventHandler( 'DragStart', nativePanel, (panelID: string, settings: DragSettings) => {
+            this.RegisterEventHandler( 'DragStart', nativePanel, (panelID: string, settings: DragSettings) => {
                 settings.displayPanel = nativePanel;
                 GObject.draggingObject = this;
                 
@@ -1034,7 +1068,7 @@ export class GObject extends EventDispatcher {
                 this.emit.call(this, 'drag_start');
                 return true;
             });
-            $.RegisterEventHandler( 'DragEnd', nativePanel, (panelID: string, dragged: Panel) => {
+            this.RegisterEventHandler( 'DragEnd', nativePanel, (panelID: string, dragged: Panel) => {
                 this.data = dragged;
                 this.emit.call(this, 'drag_end');
                 GObject.draggingObject = null;
@@ -1043,7 +1077,11 @@ export class GObject extends EventDispatcher {
         }
         else {
             nativePanel.SetDraggable(false);
-            //TODO  不知道这里有没有释放绑定的function
+            this.UnregisterEventHandler('DragEnter', nativePanel);
+            this.UnregisterEventHandler('DragDrop', nativePanel);
+            this.UnregisterEventHandler('DragLeave', nativePanel);
+            this.UnregisterEventHandler('DragStart', nativePanel);
+            this.UnregisterEventHandler('DragEnd', nativePanel);
         }
     }
 

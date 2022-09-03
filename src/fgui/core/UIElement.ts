@@ -1,9 +1,9 @@
 import { EventPool } from "../event/Event";
-import { EventDispatcher } from "../event/EventDispatcher";
 import { Rect } from "../math/Rect";
 import { Vec2 } from "../math/Vec2";
+import { CssTween } from "../tween/GTweener";
 import { FlipType } from "../ui/FieldTypes";
-import { GObject } from "../ui/GObject";
+import { GObject, PanelEventSet } from "../ui/GObject";
 import { DotaPanel } from "./DotaPanel";
 import { IStage } from "./IStage";
 
@@ -40,6 +40,10 @@ export class UIElement extends DotaPanel {
 
     private _gTouchable : boolean;
 
+    private _tweenQueue : CssTween[];
+    private _tweenRunning : Map<string, CssTween[]>;
+    private _tweenInit : boolean;
+
     public constructor() {
         super();
 
@@ -60,11 +64,15 @@ export class UIElement extends DotaPanel {
         this._tabStopChildren = false;
         this._gTouchable = undefined;
         this.forbidStyleModify = false;
+
+        this._tweenQueue = [];
+        this._tweenRunning = new Map;
+        this._tweenInit = false;
     }
 
     public initElement()
     {
-        this.nativePanel = $.CreatePanel( "Panel", $('#HiddenRoot'), this.$owner.panelName);
+        this.nativePanel = $.CreatePanel( "Panel", $('#HiddenRoot'), this.$owner.name);
     }
 
     public get name(): string {
@@ -89,7 +97,7 @@ export class UIElement extends DotaPanel {
     }
 
     public setPosition(x: number, y: number): void {
-        if (this._pos.x != x || this._pos.y != y) {
+        // if (this._pos.x != x || this._pos.y != y) {
             this._pos.set(x, y);
 
             if (this.forbidStyleModify == false)
@@ -97,7 +105,115 @@ export class UIElement extends DotaPanel {
                 this.nativePanel.style.marginLeft = x + "px";
                 this.nativePanel.style.marginTop = y + "px";
             }
+        // }
+    }
+
+    public appendTween(tween: CssTween):void
+    {
+        if (this._tweenInit == false)
+        {
+            this._tweenInit = true;
+            this.$owner.RegisterEventHandler('PropertyTransitionEnd', this.nativePanel, (_: any, propName: string)=>{
+                $.Msg(propName);
+                let runningTweens = this._tweenRunning.get(propName)
+                if (runningTweens)
+                {
+                    this._tweenRunning.delete(propName);
+                    for(let i = this._tweenQueue.length - 1; i >= 0 ; i--)
+                    {
+                        for(const rt of runningTweens)
+                        {
+                            if (rt == this._tweenQueue[i])
+                            {
+                                this._tweenQueue.splice(i, 1);
+                                break;
+                            }
+                        }
+                    }
+                    this.checkPlayTween();
+                }
+            });
         }
+        // this.forbidStyleModify = true;
+        this._tweenQueue.push(tween);
+        this.checkPlayTween();
+    }
+
+    protected checkPlayTween(): void
+    {
+        let keylist = [];
+        let valuemap: Map<string, string[]> = new Map;
+
+        //之前没播完的要加回来
+        for(let [propType, tweenArr] of this._tweenRunning)
+        {
+            for(let tween of tweenArr)
+            {
+                if (tween.duration > 0)
+                {
+                    let propKey = `${propType} ${tween.duration}s ${tween.ease} ${tween.delay}s`;
+                    keylist.push(propKey);
+                    let valuemapArr = valuemap.get(propType);
+                    if (valuemapArr)
+                    {
+                        valuemapArr.push(tween.propValue);
+                    }
+                    else
+                    {
+                        valuemap.set(propType, [tween.propValue]);
+                    }
+                }   
+            }
+        }
+
+        for(let i = 0; i < this._tweenQueue.length; i++)
+        {
+            let tween = this._tweenQueue[i];
+            let propType = tween.propType;
+            let propKey = `${propType} ${tween.duration}s ${tween.ease} ${tween.delay}s`;
+            let propValue = tween.propValue;
+            let unique = tween.unique;
+            let runningTweens = this._tweenRunning.get(propType);
+            if (!runningTweens)
+            {
+                this._tweenRunning.set(propType, [tween]);
+                keylist.push(propKey);
+                valuemap.set(propType, [propValue]);
+            }
+            else
+            {
+                let find = true;
+                for(const t of runningTweens)
+                {
+                    if (t.priority == tween.priority)
+                    {
+                        find = false;
+                        break;
+                    }
+                }
+                if (find)
+                {
+                    runningTweens.push(tween);
+                    let valuemapArr = valuemap.get(propType);
+                    valuemapArr.push(propValue);
+                }
+            }
+        }
+        
+        if (keylist.length > 0)
+        {
+            this.nativePanel.style.transition = keylist.join(',');
+            for(let [k, v] of valuemap)
+            {
+                (this.nativePanel.style as any)[k] = v.join(' ');
+            }
+        }
+    }
+
+    public removeTween(action: number):void
+    {
+        // this.forbidStyleModify = false;
+        // this._tweenSettings.delete(action);
     }
 
     public get width(): number {
@@ -187,32 +303,32 @@ export class UIElement extends DotaPanel {
     }
 
     private updateTransform(): void {
-        let str: Array<string> = [];
-        if (this._scale.x != 1 || this._flipX || this._scale.y != 1 || this._flipY)
-        {
-            str.push("scale3d(");
-            str.push("" + this._scale.x * (this._flipX ? -1 : 1));
-            str.push("," + this._scale.x * (this._flipX ? -1 : 1));
-            str.push(",1) ");
-        }
+        // let str: Array<string> = [];
+        // if (this._scale.x != 1 || this._flipX || this._scale.y != 1 || this._flipY)
+        // {
+        //     str.push("scale3d(");
+        //     str.push("" + this._scale.x * (this._flipX ? -1 : 1));
+        //     str.push("," + this._scale.x * (this._flipX ? -1 : 1));
+        //     str.push(",1) ");
+        // }
         
-        if (this._rot != 0) {
-            str.push("rotateZ(");
-            str.push("" + this._rot);
-            str.push("deg) ");
-        }
+        // if (this._rot != 0) {
+        //     str.push("rotateZ(");
+        //     str.push("" + this._rot);
+        //     str.push("deg) ");
+        // }
 
-        if (str.length > 0) {
-            this.nativePanel.style.transform = str.join("");
-            if (this._flipX || this._flipY)
-                this.nativePanel.style.transformOrigin = "50% 50%";
-            else
-                this.nativePanel.style.transformOrigin = (this._pivot.x * 100) + "% " + (this._pivot.y * 100) + "%";
-        }
-        else
-        {
-            this.nativePanel.style.transform = "none";
-        }
+        // if (str.length > 0) {
+        //     this.nativePanel.style.transform = str.join("");
+        //     if (this._flipX || this._flipY)
+        //         this.nativePanel.style.transformOrigin = "50% 50%";
+        //     else
+        //         this.nativePanel.style.transformOrigin = (this._pivot.x * 100) + "% " + (this._pivot.y * 100) + "%";
+        // }
+        // else
+        // {
+        //     this.nativePanel.style.transform = "none";
+        // }
     }
 
     protected updateFilters(): void {
@@ -251,7 +367,7 @@ export class UIElement extends DotaPanel {
     public set rotation(value: number) {
         if (this._rot != value) {
             this._rot = value;
-            this.updateTransform();
+            // this.updateTransform();
         }
     }
 
@@ -540,6 +656,10 @@ export class UIElement extends DotaPanel {
 
     public dispose() {
         this.nativePanel.RemoveAndDeleteChildren();
+        for(const evt of PanelEventSet)
+        {
+            this.nativePanel.ClearPanelEvent(evt as PanelEvent);
+        }
         this.nativePanel.DeleteAsync(1);
     }
 
