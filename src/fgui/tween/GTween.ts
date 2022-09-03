@@ -47,10 +47,5 @@ export class GTween {
     public static getTween(target: any, propType?: any): GTweener {
         return TweenManager.getTween(target, propType);
     }
-
-    public static composeTransition(target: GObject): void
-    {
-        TweenManager.composeTransition(target);
-    }
 }
 

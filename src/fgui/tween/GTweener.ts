@@ -619,8 +619,9 @@ export class GTweener {
             if (csstween)
             {
                 csstween.ease = getEasePanorama(this.easeType);
-                csstween.duration = this.duration;
                 csstween.delay = this.delay;
+                csstween.duration = this.duration;
+                csstween.tweener = this;
                 this.target.element.appendTween(csstween);
             }
         }
@@ -632,23 +633,27 @@ export class CssTween
     public propType : string;
     public propValue : string;
     public ease : string;
-    public unique : string;
 
     public delay : number;
     public priority : number;
     public endTime : number;
+    public startTime : number;
 
+    public tweener : GTweener;
+    
     public constructor(v1:string, v2:string, v6:number)
     {
         this.propType = v1;
         this.propValue = v2;
         this.priority = v6;
-        this.unique = `${v1}_${v6}`;
+        this.delay = 0;
     }
 
     public set duration(value: number)
     {
-        this.endTime = Game.Time() + value;
+        let currentTime = Game.Time();
+        this.endTime = currentTime + value + this.delay;
+        this.startTime = currentTime + this.delay;
     };
     public get duration(): number
     {

@@ -1,6 +1,8 @@
 import { UIElement } from "./UIElement";
 import { Color } from "../math/Color";
 import { convertToHtmlColor } from "../utils/ToolSet";
+import { CssTween } from "../tween/GTweener";
+import { ActionType } from "../FairyGUI";
 
 export class Shape extends UIElement {
     protected _color: number;
@@ -28,8 +30,7 @@ export class Shape extends UIElement {
             if (this._type != 0)
             {
                 this._color = value;
-                if (this.forbidStyleModify == false)
-                    this.nativePanel.style.backgroundColor = convertToHtmlColor(value);
+                this.nativePanel.style.backgroundColor = convertToHtmlColor(value);
             }
         }
     }
@@ -103,5 +104,22 @@ export class Shape extends UIElement {
     protected onSizeChanged(): void {
         this.nativePanel.style.width = this._contentRect.width + "px";
         this.nativePanel.style.height = this._contentRect.height + "px";
+    }
+
+    protected onTweenStart(tween: CssTween): void
+    {
+        switch(tween.tweener.actionType)
+        {
+            case ActionType.Color:
+            {
+                this.color = tween.tweener.startValue.color;
+                break;
+            }
+            default:
+            {
+                super.onTweenStart(tween);
+                break;
+            }
+        }
     }
 }

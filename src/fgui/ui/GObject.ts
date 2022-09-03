@@ -403,14 +403,14 @@ export class GObject extends EventDispatcher {
 
     public setPivot(xv: number, yv: number, asAnchor?: boolean): void {
         asAnchor = asAnchor || false;
-        if (this._pivotX != xv || this._pivotY != yv || this._pivotAsAnchor != asAnchor) {
+        // if (this._pivotX != xv || this._pivotY != yv || this._pivotAsAnchor != asAnchor) {
             this._pivotX = xv;
             this._pivotY = yv;
             this._pivotAsAnchor = asAnchor;
             this._pivotStr = `${xv * 100}% ${yv * 100}%`;
             this._element.setPivot(xv, yv);
             this.handlePositionChanged();
-        }
+        // }
     }
 
     public getPivotPercent(): string
@@ -725,9 +725,12 @@ export class GObject extends EventDispatcher {
     public clearTouchEvent()
     {
         this.clearAllPanelEvent();
-        for(let [evt, any] of this._registedEvents)
+        if (this.element)
         {
-            this.UnregisterEventHandler(evt, this.element.nativePanel);
+            for(let [evt, any] of this._registedEvents)
+            {
+                this.UnregisterEventHandler(evt, this.element.nativePanel);
+            }
         }
     }
 

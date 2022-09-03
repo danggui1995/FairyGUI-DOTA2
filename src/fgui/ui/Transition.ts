@@ -10,6 +10,7 @@ import { GTweener } from "../tween/GTweener";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { ActionType } from "../tween/TweenValue";
 import { UIConfig } from "./UIConfig";
+import { UIPackage } from "./UIPackage";
 
 const OPTION_IGNORE_DISPLAY_CONTROLLER: number = 1;
 const OPTION_AUTO_STOP_DISABLED: number = 2;
@@ -927,134 +928,134 @@ export class Transition {
     }
 
     private applyValue(item: Item): void {
-        // item.target._gearLocked = true;
-        // var value: TValue = item.value;
+        item.target._gearLocked = true;
+        var value: TValue = item.value;
 
-        // switch (item.type) {
-        //     case ActionType.XY:
-        //         if (item.target == this._owner) {
-        //             if (value.b1 && value.b2)
-        //                 item.target.setPosition(value.f1 + this._ownerBaseX, value.f2 + this._ownerBaseY);
-        //             else if (value.b1)
-        //                 item.target.x = value.f1 + this._ownerBaseX;
-        //             else
-        //                 item.target.y = value.f2 + this._ownerBaseY;
-        //         }
-        //         else {
-        //             if (value.b3) //position in percent
-        //             {
-        //                 if (value.b1 && value.b2)
-        //                     item.target.setPosition(value.f1 * this._owner.width, value.f2 * this._owner.height);
-        //                 else if (value.b1)
-        //                     item.target.x = value.f1 * this._owner.width;
-        //                 else if (value.b2)
-        //                     item.target.y = value.f2 * this._owner.height;
-        //             }
-        //             else {
-        //                 if (value.b1 && value.b2)
-        //                     item.target.setPosition(value.f1, value.f2);
-        //                 else if (value.b1)
-        //                     item.target.x = value.f1;
-        //                 else if (value.b2)
-        //                     item.target.y = value.f2;
-        //             }
-        //         }
-        //         break;
+        switch (item.type) {
+            case ActionType.XY:
+                if (item.target == this._owner) {
+                    if (value.b1 && value.b2)
+                        item.target.setPosition(value.f1 + this._ownerBaseX, value.f2 + this._ownerBaseY);
+                    else if (value.b1)
+                        item.target.x = value.f1 + this._ownerBaseX;
+                    else
+                        item.target.y = value.f2 + this._ownerBaseY;
+                }
+                else {
+                    if (value.b3) //position in percent
+                    {
+                        if (value.b1 && value.b2)
+                            item.target.setPosition(value.f1 * this._owner.width, value.f2 * this._owner.height);
+                        else if (value.b1)
+                            item.target.x = value.f1 * this._owner.width;
+                        else if (value.b2)
+                            item.target.y = value.f2 * this._owner.height;
+                    }
+                    else {
+                        if (value.b1 && value.b2)
+                            item.target.setPosition(value.f1, value.f2);
+                        else if (value.b1)
+                            item.target.x = value.f1;
+                        else if (value.b2)
+                            item.target.y = value.f2;
+                    }
+                }
+                break;
 
-        //     case ActionType.Size:
-        //         if (!value.b1)
-        //             value.f1 = item.target.width;
-        //         if (!value.b2)
-        //             value.f2 = item.target.height;
-        //         item.target.setSize(value.f1, value.f2);
-        //         break;
+            case ActionType.Size:
+                if (!value.b1)
+                    value.f1 = item.target.width;
+                if (!value.b2)
+                    value.f2 = item.target.height;
+                item.target.setSize(value.f1, value.f2);
+                break;
 
-        //     case ActionType.Pivot:
-        //         item.target.setPivot(value.f1, value.f2, item.target.pivotAsAnchor);
-        //         break;
+            case ActionType.Pivot:
+                item.target.setPivot(value.f1, value.f2, item.target.pivotAsAnchor);
+                break;
 
-        //     case ActionType.Alpha:
-        //         item.target.alpha = value.f1;
-        //         break;
+            case ActionType.Alpha:
+                item.target.alpha = value.f1;
+                break;
 
-        //     case ActionType.Rotation:
-        //         item.target.rotation = value.f1;
-        //         break;
+            case ActionType.Rotation:
+                item.target.rotation = value.f1;
+                break;
 
-        //     case ActionType.Scale:
-        //         item.target.setScale(value.f1, value.f2);
-        //         break;
+            case ActionType.Scale:
+                item.target.setScale(value.f1, value.f2);
+                break;
 
-        //     case ActionType.Skew:
-        //         item.target.setSkew(value.f1, value.f2);
-        //         break;
+            case ActionType.Skew:
+                item.target.setSkew(value.f1, value.f2);
+                break;
 
-        //     case ActionType.Color:
-        //         item.target.setProp(ObjectPropID.Color, value.f1);
-        //         break;
+            case ActionType.Color:
+                item.target.setProp(ObjectPropID.Color, value.f1);
+                break;
 
-        //     case ActionType.Animation:
-        //         if (value.frame >= 0)
-        //             item.target.setProp(ObjectPropID.Frame, value.frame);
-        //         item.target.setProp(ObjectPropID.Playing, value.playing);
-        //         item.target.setProp(ObjectPropID.TimeScale, this._timeScale);
-        //         break;
+            case ActionType.Animation:
+                if (value.frame >= 0)
+                    item.target.setProp(ObjectPropID.Frame, value.frame);
+                item.target.setProp(ObjectPropID.Playing, value.playing);
+                item.target.setProp(ObjectPropID.TimeScale, this._timeScale);
+                break;
 
-        //     case ActionType.Visible:
-        //         item.target.visible = value.visible;
-        //         break;
+            case ActionType.Visible:
+                item.target.visible = value.visible;
+                break;
 
-        //     case ActionType.Transition:
-        //         if (this._playing) {
-        //             var trans: Transition = value.trans;
-        //             if (trans) {
-        //                 this._totalTasks++;
-        //                 var startTime: number = this._startTime > item.time ? (this._startTime - item.time) : 0;
-        //                 var endTime: number = this._endTime >= 0 ? (this._endTime - item.time) : -1;
-        //                 if (value.stopTime >= 0 && (endTime < 0 || endTime > value.stopTime))
-        //                     endTime = value.stopTime;
-        //                 trans.timeScale = this._timeScale;
-        //                 trans._play(this.onPlayTransCompleted.bind(this, item), value.playTimes, 0, startTime, endTime, this._reversed);
-        //             }
-        //         }
-        //         break;
+            case ActionType.Transition:
+                if (this._playing) {
+                    var trans: Transition = value.trans;
+                    if (trans) {
+                        this._totalTasks++;
+                        var startTime: number = this._startTime > item.time ? (this._startTime - item.time) : 0;
+                        var endTime: number = this._endTime >= 0 ? (this._endTime - item.time) : -1;
+                        if (value.stopTime >= 0 && (endTime < 0 || endTime > value.stopTime))
+                            endTime = value.stopTime;
+                        trans.timeScale = this._timeScale;
+                        trans._play(this.onPlayTransCompleted.bind(this, item), value.playTimes, 0, startTime, endTime, this._reversed);
+                    }
+                }
+                break;
 
-        //     case ActionType.Sound:
-        //         if (this._playing && item.time >= this._startTime) {
-        //             if (value.audioClip == null) {
-        //                 var pi: PackageItem = UIPackage.getItemByURL(value.sound);
-        //                 if (pi)
-        //                     value.audioClip = pi.file;
-        //                 else
-        //                     value.audioClip = value.sound;
-        //             }
-        //             // if (value.audioClip)
-        //             //     GRoot.playOneShotSound(value.audioClip, value.volume);
-        //         }
-        //         break;
+            case ActionType.Sound:
+                if (this._playing && item.time >= this._startTime) {
+                    if (value.audioClip == null) {
+                        var pi: PackageItem = UIPackage.getItemByURL(value.sound);
+                        if (pi)
+                            value.audioClip = pi.file;
+                        else
+                            value.audioClip = value.sound;
+                    }
+                    // if (value.audioClip)
+                    //     GRoot.playOneShotSound(value.audioClip, value.volume);
+                }
+                break;
 
-        //     case ActionType.Shake:
-        //         item.target.setPosition(item.target.x - value.lastOffsetX + value.offsetX, item.target.y - value.lastOffsetY + value.offsetY);
-        //         value.lastOffsetX = value.offsetX;
-        //         value.lastOffsetY = value.offsetY;
-        //         break;
+            case ActionType.Shake:
+                item.target.setPosition(item.target.x - value.lastOffsetX + value.offsetX, item.target.y - value.lastOffsetY + value.offsetY);
+                value.lastOffsetX = value.offsetX;
+                value.lastOffsetY = value.offsetY;
+                break;
 
-        //     case ActionType.ColorFilter:
-        //         {
-        //             //todo colorFilter item.target.element, [value.f1, value.f2, value.f3, value.f4]);
-        //             break;
-        //         }
+            case ActionType.ColorFilter:
+                {
+                    //todo colorFilter item.target.element, [value.f1, value.f2, value.f3, value.f4]);
+                    break;
+                }
 
-        //     case ActionType.Text:
-        //         item.target.text = value.text;
-        //         break;
+            case ActionType.Text:
+                item.target.text = value.text;
+                break;
 
-        //     case ActionType.Icon:
-        //         item.target.icon = value.text;
-        //         break;
-        // }
+            case ActionType.Icon:
+                item.target.icon = value.text;
+                break;
+        }
 
-        // item.target._gearLocked = false;
+        item.target._gearLocked = false;
     }
 
     public setup(buffer: ByteBuffer): void {
