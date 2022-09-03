@@ -545,12 +545,12 @@ export class GTweener {
                 }
                 case ActionType.Rotation:
                 {
-                    csstween = new CssTween("transform", `rotateZ(${endx}deg)`, 1);
+                    csstween = new CssTween("pre-transform-rotate2d", `${endx}deg`, 0);
                     break;
                 }
                 case ActionType.Scale:
                 {
-                    csstween = new CssTween("transform", `scale3d(${endx}, ${endy}, 1)`, 3);
+                    csstween = new CssTween("pre-transform-scale2d", `${endx}, ${endy}`, 0);
                     break;
                 }
                 case ActionType.Size:

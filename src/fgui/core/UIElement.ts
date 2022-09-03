@@ -223,8 +223,9 @@ export class UIElement extends DotaPanel {
         //之前没播完的要加回来
         for(let [propType, tweenArr] of this._tweenRunning)
         {
-            for(let tween of tweenArr)
+            for(let i = tweenArr.length - 1; i >= 0; i--)
             {
+                let tween = tweenArr[i];
                 if (tween.duration > 0)
                 {
                     let propKey = `${propType} ${tween.duration}s ${tween.ease} 0s`;
@@ -238,7 +239,11 @@ export class UIElement extends DotaPanel {
                     {
                         valuemap.set(propType, [tween.propValue]);
                     }
-                }   
+                }
+                else
+                {
+                    tweenArr.splice(i, 1);
+                }
             }
         }
 
@@ -422,7 +427,7 @@ export class UIElement extends DotaPanel {
     public setScale(xv: number, yv: number) {
         if (this._scale.x != xv || this._scale.y != yv) {
             this._scale.set(xv, yv);
-            this.nativePanel.style.transform = `scale3d(${xv}, ${yv}, 1)`;
+            this.nativePanel.style.preTransformScale2d = `${xv}, ${yv}`;
         }
     }
 
@@ -432,7 +437,7 @@ export class UIElement extends DotaPanel {
     public set rotation(value: number) {
         if (this._rot != value) {
             this._rot = value;
-            this.nativePanel.style.transform = `rotateZ(${value}deg)`;
+            this.nativePanel.style.preTransformRotate2d = `${value}deg`;
         }
     }
 

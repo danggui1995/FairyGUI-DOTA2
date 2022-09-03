@@ -89,6 +89,7 @@ export class GGraph extends GObject {
     }
 
     public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {
+        this.setPivot(0, 0);
         super.setup_beforeAdd(buffer, beginPos);
 
         buffer.seek(beginPos, 5);

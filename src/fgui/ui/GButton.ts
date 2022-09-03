@@ -397,7 +397,7 @@ export class GButton extends GComponent {
         if (this._mode == ButtonMode.Common)
             this.setState("up");
 
-        this.addEvent("removed_from_stage", this.__removeFromStage, this);
+        this.onEvent("removed_from_stage", this.__removeFromStage, this);
         this.onEvent('onTouchBegin', this.__btnTouchBegin, this);
         this.onEvent('onTouchEnd', this.__btnTouchEnd, this);
         this.onEvent('onactivate', this.__click, this);
