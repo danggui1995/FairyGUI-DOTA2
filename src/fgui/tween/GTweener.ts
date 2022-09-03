@@ -45,15 +45,12 @@ export class GTweener {
     private _normalizedTime: number;
 
     public actionType: ActionType;
-    public endTime: number;
-    public originValue: TweenValue;
 
     public constructor() {
         this._startValue = new TweenValue();
         this._endValue = new TweenValue();
         this._value = new TweenValue();
         this._deltaValue = new TweenValue();
-        this.originValue = new TweenValue();
 
         this._reset();
     }
@@ -497,27 +494,6 @@ export class GTweener {
         this.callUpdateCallback();
     }
 
-    private onTweenStart(target: any): void
-    {
-        target.nativePanel.style.transition = null;
-        switch(this.actionType)
-        {
-            case ActionType.XY:
-            {
-                target.nativePanel.style.marginLeft = this._startValue.x + "px";
-                target.nativePanel.style.marginTop = this._startValue.y + "px";
-                break;
-            }
-            // case ActionType.Scale:
-            // {
-            //     target.nativePanel.style.marginLeft = this._startValue.x + "px";
-            //     target.nativePanel.style.marginTop = this._startValue.y + "px";
-            //     break;
-            // }
-                 
-        }
-    }
-
     private callStartCallback(): void {
         if (this._onStart) {
             try {
@@ -543,17 +519,6 @@ export class GTweener {
     private callCompleteCallback(): void {
         if (this._onComplete) {
             try {
-                if (this.actionType != undefined)
-                {
-                    if (this._target && this._target.element)
-                    {
-                        this._target.element.removeTween(this.actionType);
-                    }
-                    else if (this._target.target && this._target.target.element)
-                    {
-                        this._target.target.element.removeTween(this.actionType);
-                    }
-                }
                 this._onComplete.call(this._onCompleteCaller, this);
             }
             catch (err) {

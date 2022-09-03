@@ -1,4 +1,3 @@
-import { GObject } from "../FairyGUI";
 import { GTweener } from "./GTweener";
 import { TweenManager } from "./TweenManager";
 import { ActionType } from "./TweenValue";
