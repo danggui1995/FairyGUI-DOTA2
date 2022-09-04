@@ -1025,7 +1025,7 @@ export class GObject extends EventDispatcher {
         }
     }
 
-    public RegisterEventHandler(evt: string, panel: PanelBase, func:Function):any
+    public RegisterEventHandler(evt: string, func:Function):any
     {
         if (!this._registedEvents.has(evt))
         {
@@ -1051,19 +1051,19 @@ export class GObject extends EventDispatcher {
         var nativePanel : Panel = this.GetNativePanel();
         if (this._draggable) {
             nativePanel.SetDraggable(true);
-            this.RegisterEventHandler( 'DragEnter', nativePanel, (panelID: string, dragged: Panel) => {
+            this.RegisterEventHandler( 'DragEnter', (panelID: string, dragged: Panel) => {
                 this.emit.call(this, 'drag_enter');
                 return true;
             });
-            this.RegisterEventHandler( 'DragDrop', nativePanel,  (panelID: string, dragged: Panel) => {
+            this.RegisterEventHandler( 'DragDrop',  (panelID: string, dragged: Panel) => {
                 this.emit.call(this, 'drag_drop');
                 return true;
             });
-            this.RegisterEventHandler( 'DragLeave', nativePanel, (panelID: string, dragged: Panel) => {
+            this.RegisterEventHandler( 'DragLeave', (panelID: string, dragged: Panel) => {
                 this.emit.call(this, 'drag_leave');
                 return true;
             });
-            this.RegisterEventHandler( 'DragStart', nativePanel, (panelID: string, settings: DragSettings) => {
+            this.RegisterEventHandler( 'DragStart', (panelID: string, settings: DragSettings) => {
                 settings.displayPanel = nativePanel;
                 GObject.draggingObject = this;
                 
@@ -1071,7 +1071,7 @@ export class GObject extends EventDispatcher {
                 this.emit.call(this, 'drag_start');
                 return true;
             });
-            this.RegisterEventHandler( 'DragEnd', nativePanel, (panelID: string, dragged: Panel) => {
+            this.RegisterEventHandler( 'DragEnd', (panelID: string, dragged: Panel) => {
                 this.data = dragged;
                 this.emit.call(this, 'drag_end');
                 GObject.draggingObject = null;

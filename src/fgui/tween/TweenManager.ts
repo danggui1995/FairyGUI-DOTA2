@@ -5,6 +5,7 @@ import { UIConfig } from "../FairyGUI";
 
 export class TweenManager {
     private static _tmpTweens : GTweener[] = [];
+    private static _delayTimer : ScheduleID;
 
     public static createTween(): GTweener {
         var tweener: GTweener = _tweenerPool.borrow();
@@ -16,8 +17,25 @@ export class TweenManager {
             }
             _activeTweens[_totalActiveTweens++] = tweener;
         }
-        
+        else
+        {
+            TweenManager._tmpTweens.push(tweener);
+            if (!TweenManager._delayTimer)
+            {
+                TweenManager._delayTimer = $.Schedule(0.01, this.DelayPlayTween);
+            }
+        }
         return tweener;
+    }
+
+    protected static DelayPlayTween()
+    {
+        TweenManager._delayTimer = null;
+        for(const tweener of TweenManager._tmpTweens)
+        {
+            tweener.playNative();
+        }
+        TweenManager._tmpTweens = [];
     }
 
     public static isTweening(target: any, propType?: any): boolean {

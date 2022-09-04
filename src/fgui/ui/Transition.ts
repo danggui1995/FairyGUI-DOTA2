@@ -36,7 +36,11 @@ export class Transition {
     private _autoPlayDelay: number;
     private _timeScale: number;
     private _startTime: number;
+
     private _endTime: number;
+    private _onAnimationEndCallback : any;
+    private _onAnimationStartCallback : any;
+    private _runningAnimation: Set<string>;
 
     constructor(owner: GComponent) {
         this._owner = owner;
@@ -47,6 +51,14 @@ export class Transition {
         this._timeScale = 1;
         this._startTime = 0;
         this._endTime = 0;
+
+        this._runningAnimation = new Set;
+        this._onAnimationEndCallback = (_: any, className: string)=>{
+            this.onAnimationEnd(className);
+        };
+        this._onAnimationStartCallback = (_: any, className: string)=>{
+            this.onAnimationStart(className);
+        };
     }
 
     public play(onComplete?: Function, times?: number, delay?: number, startTime?: number, endTime?: number): void {
@@ -136,9 +148,20 @@ export class Transition {
         {
             if (UIConfig.useNativeTransition == true)
             {
-                let item = this._items[0];
-                let transitionClassName = `${item.fileName}_${item.name}_${item.targetId}`;
-                item.target.AddClass(transitionClassName);
+                this._playing = false;
+                this.stopAnimation();
+                let runningSet:Set<string> = new Set;
+                for (var i: number = 0; i < cnt; i++) {
+                    var item: Item = this._items[i];
+                    let transitionClassName = `${item.fileName}_${item.name}_${item.targetId}`;
+                    if (!runningSet.has(transitionClassName))
+                    {
+                        runningSet.add(transitionClassName);
+                        item.target.AddClass(transitionClassName);
+                        item.target.RegisterEventHandler('AnimationStart', this._onAnimationStartCallback);
+                        item.target.RegisterEventHandler('AnimationEnd', this._onAnimationEndCallback);
+                    }
+                }
             }
             else
             {
@@ -148,6 +171,48 @@ export class Transition {
                     GTween.delayedCall(delay).setTarget(this).onComplete(this.onDelayedPlay, this);
             }
         }
+    }
+
+    protected stopAnimation(className ?: string): void
+    {
+        let cnt = this._items.length;
+        for (var i: number = 0; i < cnt; i++) {
+            var item: Item = this._items[i];
+            let transitionClassName = `${item.fileName}_${item.name}_${item.targetId}`;
+            if (!className || className == transitionClassName)
+            {
+                if (this._runningAnimation.has(transitionClassName))
+                {
+                    item.target.RemoveClass(transitionClassName);
+                    this._runningAnimation.delete(transitionClassName);
+                }
+            }
+        }
+    }
+
+    protected onAnimationEnd(className: string): void
+    {
+        if (this._runningAnimation.has(className))
+        {
+            this._runningAnimation.delete(className);
+            this._playing = true;
+        }
+        if (this._runningAnimation.size == 0 && this._playing == true)
+        {
+            this._playing = false;
+            if (this._onComplete)
+            {
+                let handler = this._onComplete;
+                handler();
+            }
+            this._onComplete = null;
+        }
+    }
+
+    protected onAnimationStart(className: string): void
+    {
+        this._runningAnimation.add(className);
+        this._playing = true;
     }
 
     public stop(setToComplete?: boolean, processCallback?: boolean): void {

@@ -121,7 +121,7 @@ export class UIElement extends DotaPanel {
         if (this._tweenInit == false)
         {
             this._tweenInit = true;
-            this.$owner.RegisterEventHandler('PropertyTransitionEnd', this.nativePanel, (_: any, propName: string)=>{
+            this.$owner.RegisterEventHandler('PropertyTransitionEnd', (_: any, propName: string)=>{
                 let runningTweens = this._tweenRunning.get(propName)
                 if (runningTweens)
                 {
