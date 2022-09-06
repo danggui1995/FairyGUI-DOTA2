@@ -51,9 +51,8 @@ export class UIElement extends DotaPanel {
 
     private _gTouchable : boolean;
 
-    private _tweenQueue : CssTween[];
-    private _tweenRunning : Map<string, CssTween[]>;
     private _tweenInit : boolean;
+    private _tweenTest : Map<string, CssTween[]>;
 
     public constructor() {
         super();
@@ -76,9 +75,8 @@ export class UIElement extends DotaPanel {
         this._gTouchable = undefined;
         this._skew = new Vec2(0, 0);
 
-        this._tweenQueue = [];
-        this._tweenRunning = new Map;
         this._tweenInit = false;
+        this._tweenTest = new Map;
     }
 
     public initElement()
@@ -116,46 +114,80 @@ export class UIElement extends DotaPanel {
         // }
     }
 
+    protected removeExpiredTween(tween?: CssTween): boolean
+    {
+        // for (const [propName, tweenArr] of this._tweenRunning) {
+        //     for (let i = tweenArr.length - 1; i >= 0; i--) {
+        //         let t = this._tweenQueue[i];
+        //         if (t.duration < 0) {
+        //             tweenArr.splice(i, 1);
+        //         }
+        //     }
+        // }
+
+        // for (let i = this._tweenQueue.length - 1; i >= 0; i--) {
+        //     let t = this._tweenQueue[i];
+        //     if (t.duration < 0) {
+        //         this._tweenQueue.splice(i, 1);
+        //     }
+        //     else if (tween && t.propType == tween.propType && t.priority == tween.priority && tween.startTime <= t.endTime - 0.02)
+        //     {
+        //         return true;
+        //     }
+        // }
+
+        for (const [propName, tweenArr] of this._tweenTest) {
+            for (let i = tweenArr.length - 1; i >= 0; i--) {
+                let t = tweenArr[i];
+                if (t.duration < 0) {
+                    tweenArr.splice(i, 1);
+                }
+            }
+        }
+
+
+        return false;
+    }
+
     public appendTween(tween: CssTween):void
     {
         if (this._tweenInit == false)
         {
             this._tweenInit = true;
             this.$owner.RegisterEventHandler('PropertyTransitionEnd', (_: any, propName: string)=>{
-                let runningTweens = this._tweenRunning.get(propName)
-                if (runningTweens)
+                let runningTweens = this._tweenTest.get(propName)
+                if (runningTweens && runningTweens.length > 0)
                 {
-                    this._tweenRunning.delete(propName);
-                    for(let i = this._tweenQueue.length - 1; i >= 0 ; i--)
-                    {
-                        for(const rt of runningTweens)
-                        {
-                            if (rt == this._tweenQueue[i])
-                            {
-                                this.onTweenStop(rt);
-                                this._tweenQueue.splice(i, 1);
-                                break;
-                            }
-                        }
-                    }
+                    let topTween = runningTweens.shift();
+                    this.onTweenStop(topTween);
+                    this.removeExpiredTween();
                     this.checkPlayTween();
+                    topTween.kill();
                 }
             });
         }
 
-        if (this._tweenRunning.has(tween.propType))
+        this.removeExpiredTween();
+        if (this._tweenTest.has(tween.propType))
         {
-            let runningTweens = this._tweenRunning.get(tween.propType)
-            for(const rt of runningTweens)
+            let allTweens = this._tweenTest.get(tween.propType)
+            if (allTweens.length > 0)
             {
-                if (rt.priority == tween.priority && tween.startTime < rt.endTime - 0.05)
+                let lastTween = allTweens[allTweens.length - 1];
+                if (lastTween.endTime - 0.02 < tween.startTime)
                 {
-                    return;
+                    allTweens.push(tween);
                 }
             }
+            else
+            {
+                allTweens.push(tween);
+            }
         }
-        this._tweenQueue.push(tween);
-        this.checkPlayTween();
+        else
+        {
+            this._tweenTest.set(tween.propType, [tween]);
+        }
     }
 
     protected onTweenReset(actionType: ActionType, startValue: TweenValue): void
@@ -201,10 +233,14 @@ export class UIElement extends DotaPanel {
 
     protected onTweenStart(tween : CssTween)
     {
-        this.nativePanel.style.transition = null;
-        this.nativePanel.style.transform = null;
-        let tweener = tween.tweener;
-        this.onTweenReset(tweener.actionType, tweener.startValue);
+        if (!tween.hasStarted)
+        {
+            tween.hasStarted = true;
+            this.nativePanel.style.transition = null;
+            this.nativePanel.style.transform = null;
+            let tweener = tween.tweener;
+            this.onTweenReset(tweener.actionType, tweener.startValue);
+        }
     }
 
     protected onTweenStop(tween : CssTween)
@@ -215,17 +251,32 @@ export class UIElement extends DotaPanel {
         this.onTweenReset(tweener.actionType, tweener.endValue);
     }
 
+    public playTweenComposed(): void
+    {
+        for (const [propName, tweenArr] of this._tweenTest) {
+            for (let i = tweenArr.length - 1; i >= 0; i--) {
+                let t = tweenArr[i];
+                if (t.duration < 0)
+                {
+                    t.kill();
+                    tweenArr.splice(i, 1);
+                }
+            }
+        }
+
+        this.checkPlayTween();
+    }
+
     protected checkPlayTween(): void
     {
         let keylist = [];
         let valuemap: Map<string, string[]> = new Map;
 
-        //之前没播完的要加回来
-        for(let [propType, tweenArr] of this._tweenRunning)
+        for(let [propType, tweenArr] of this._tweenTest)
         {
-            for(let i = tweenArr.length - 1; i >= 0; i--)
+            if (tweenArr.length > 0)
             {
-                let tween = tweenArr[i];
+                let tween = tweenArr[0];
                 if (tween.duration > 0)
                 {
                     let propKey = `${propType} ${tween.duration}s ${tween.ease} 0s`;
@@ -239,64 +290,17 @@ export class UIElement extends DotaPanel {
                     {
                         valuemap.set(propType, [tween.propValue]);
                     }
+                    this.onTweenStart(tween);
                 }
                 else
                 {
-                    tweenArr.splice(i, 1);
+                    tweenArr.shift();
                 }
             }
         }
 
-        for(let i = 0; i < this._tweenQueue.length; i++)
-        {
-            let tween = this._tweenQueue[i];
-            let propType = tween.propType;
-            let propKey = `${propType} ${tween.duration}s ${tween.ease} 0s`;
-            let propValue = tween.propValue;
-            let runningTweens = this._tweenRunning.get(propType);
-            if (!runningTweens)
-            {
-                this._tweenRunning.set(propType, [tween]);
-                keylist.push(propKey);
-                valuemap.set(propType, [propValue]);
-            }
-            else
-            {
-                let find = true;
-                for(const t of runningTweens)
-                {
-                    if (t.priority == tween.priority)
-                    {
-                        find = false;
-                        break;
-                    }
-                }
-                if (find)
-                {
-                    runningTweens.push(tween);
-                    let valuemapArr = valuemap.get(propType);
-                    if (valuemapArr)
-                    {
-                        valuemapArr.push(propValue);
-                    }
-                    else
-                    {
-                        valuemap.set(propType, [propValue]);
-                    }
-                }
-            }
-        }
-        
         if (keylist.length > 0)
         {
-            //归0
-            for(const [propType, rts] of this._tweenRunning)
-            {
-                for(const rt of rts)
-                {
-                    this.onTweenStart(rt);
-                }
-            }
             this.nativePanel.style.transition = keylist.join(',');
             for(let [k, v] of valuemap)
             {
@@ -435,10 +439,10 @@ export class UIElement extends DotaPanel {
         return this._rot;
     }
     public set rotation(value: number) {
-        if (this._rot != value) {
+        // if (this._rot != value) {
             this._rot = value;
             this.nativePanel.style.preTransformRotate2d = `${value}deg`;
-        }
+        // }
     }
 
     public get parent(): UIElement | undefined {

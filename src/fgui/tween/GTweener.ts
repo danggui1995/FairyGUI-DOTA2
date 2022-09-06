@@ -4,6 +4,7 @@ import { ActionType, TweenValue } from "./TweenValue";
 import { evaluateEase } from "./EaseManager";
 import { Vec2 } from "../math/Vec2";
 import { convertToHtmlColor } from "../utils/ToolSet";
+import { TweenManager } from "./TweenManager";
 
 var s_vec2: Vec2 = new Vec2();
 
@@ -44,7 +45,7 @@ export class GTweener {
     private _elapsedTime: number;
     private _normalizedTime: number;
 
-    public actionType: ActionType;
+    public actionType?: ActionType;
 
     public constructor() {
         this._startValue = new TweenValue();
@@ -529,7 +530,14 @@ export class GTweener {
 
     public playNative():void
     {
-        if (this.target && this.target.element)
+        let element;
+        if (this.target && this.target.element) {
+            element = this.target.element;
+        }
+        else if (this.target.target && this.target.target.element) {
+            element = this.target.target.element;
+        }
+        if (element)
         {
             let endx = this.endValue.x;
             let endy = this.endValue.y;
@@ -557,13 +565,25 @@ export class GTweener {
                 {
                     let tween1 = new CssTween("width", `${endx}px`, 0);
                     let tween2 = new CssTween("height", `${endy}px`, 0);
-                    this.target.element.appendTween(tween1);
-                    this.target.element.appendTween(tween2);
+
+                    let ease = getEasePanorama(this.easeType);
+                    tween1.ease = ease
+                    tween1.delay = this.delay;
+                    tween1.duration = this.duration;
+                    tween1.tweener = this;
+
+                    tween2.ease = ease;
+                    tween2.delay = this.delay;
+                    tween2.duration = this.duration;
+                    tween2.tweener = this;
+
+                    element.appendTween(tween1);
+                    element.appendTween(tween2);
                     break;
                 }
                 case ActionType.Alpha:
                 {
-                    csstween = new CssTween("opacity", `${endx}px`, 0);
+                    csstween = new CssTween("opacity", `${endx}`, 0);
                     break;
                 }
                 case ActionType.Color:
@@ -578,7 +598,7 @@ export class GTweener {
                 }
                 default:
                 {
-                    $.Msg("unsupported tween type:" + ActionType[this.actionType]);
+                    // $.Msg("unsupported tween type:" + ActionType[this.actionType]);
                 }
             }
             if (csstween)
@@ -587,7 +607,7 @@ export class GTweener {
                 csstween.delay = this.delay;
                 csstween.duration = this.duration;
                 csstween.tweener = this;
-                this.target.element.appendTween(csstween);
+                element.appendTween(csstween);
             }
         }
     }
@@ -603,8 +623,21 @@ export class CssTween
     public priority : number;
     public endTime : number;
     public startTime : number;
-
+    public hasStarted: boolean;
     public tweener : GTweener;
+
+    public get classBase(): string
+    {
+        return `FGUI_Transition_${this.propType}_${this.ease}`;
+    }
+    public get classDuration(): string
+    {
+        return `FGUI_Transition_Duration_${Math.floor(this.duration * 100)}`;
+    }
+    public get classDelay(): string
+    {
+        return `FGUI_Transition_Delay_${Math.floor(this.delay * 100)}`;
+    }
     
     public constructor(v1:string, v2:string, v6:number)
     {
@@ -612,6 +645,7 @@ export class CssTween
         this.propValue = v2;
         this.priority = v6;
         this.delay = 0;
+        this.hasStarted = false;
     }
 
     public set duration(value: number)
@@ -623,5 +657,17 @@ export class CssTween
     public get duration(): number
     {
         return this.endTime - Game.Time();
+    }
+
+    public tostring(): string
+    {
+        return `propType = ${this.propType}\npropValue = ${this.propValue}\ndelay = ${this.delay}\nduration = ${this.duration}\n`;
+    }
+
+    public kill(): void
+    {
+        this.tweener.kill(true);
+        TweenManager.returnTween(this.tweener);
+        this.tweener = null;
     }
 }

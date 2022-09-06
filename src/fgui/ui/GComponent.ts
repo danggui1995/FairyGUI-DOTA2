@@ -1130,8 +1130,8 @@ export class GComponent extends GObject {
         }
 
         if (this._transitions.length > 0) {
-            this.addEvent("added_to_stage", () => { this._transitions.forEach(e => e.onOwnerAddedToStage()); }, this);
-            this.addEvent("removed_from_stage", () => { this._transitions.forEach(e => e.onOwnerRemovedFromStage()); }, this);
+            this.onEvent("added_to_stage", () => { this._transitions.forEach(e => e.onOwnerAddedToStage()); }, this);
+            this.onEvent("removed_from_stage", () => { this._transitions.forEach(e => e.onOwnerRemovedFromStage()); }, this);
         }
 
         this.applyAllControllers();

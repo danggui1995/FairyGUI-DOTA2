@@ -19,6 +19,7 @@ export type EventType =
     | "scroll" | "scroll_end" | "pull_down_release" | "pull_up_release"
     | "click_item" | "click_link"
     | "onTouchBegin" | "onTouchMove" | "onTouchEnd" | "onMouseWheel"
+    | "transition_end"
     | "play_end" | "gear_stop";
 
 export interface InputInfo {

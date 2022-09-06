@@ -481,6 +481,27 @@ interface VCSSStyleDeclaration {
      */
     hueRotation: string | null;
 
+    ignoreParentFlow: string | null;
+
+
+    /**
+     * Specifies image shadows.
+     * The shadow shape will match the image the panel can generate,and this is only meaningful for images.
+     * Syntax takes horizontal offset pixels, vertical offset pixels, blur radius pixels, strength, and then shadow color.
+     * >Example:   img-shadow: 2px 2px 8px 3.0 #333333b0;
+     */
+    imgShadow: string | null;
+
+
+    /**
+     * Sets how the panel is positioned relative to its parent.
+     * "static" means position in the default way.
+     * "fixed" means position in the default way, but ignoring the parent's scroll offset.
+     * Example: layout-position: fixed;
+     */
+    layoutPosition: string | null;
+    
+
     /**
      * Sets letter-spacing for text in a string. Possible values:
      * normal - no manual spacing

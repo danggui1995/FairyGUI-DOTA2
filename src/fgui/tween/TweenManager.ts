@@ -6,6 +6,7 @@ import { UIConfig } from "../FairyGUI";
 export class TweenManager {
     private static _tmpTweens : GTweener[] = [];
     private static _delayTimer : ScheduleID;
+    private static _elementSet : Set<any> = new Set;
 
     public static createTween(): GTweener {
         var tweener: GTweener = _tweenerPool.borrow();
@@ -22,7 +23,7 @@ export class TweenManager {
             TweenManager._tmpTweens.push(tweener);
             if (!TweenManager._delayTimer)
             {
-                TweenManager._delayTimer = $.Schedule(0.01, this.DelayPlayTween);
+                TweenManager._delayTimer = $.Schedule(0.01, TweenManager.DelayPlayTween);
             }
         }
         return tweener;
@@ -34,7 +35,23 @@ export class TweenManager {
         for(const tweener of TweenManager._tmpTweens)
         {
             tweener.playNative();
+            let element;
+            if (tweener.target && tweener.target.element) {
+                element = tweener.target.element;
+            }
+            else if (tweener.target.target && tweener.target.target.element) {
+                element = tweener.target.target.element;
+            }
+            if (!TweenManager._elementSet.has(element))
+            {
+                TweenManager._elementSet.add(element);
+            }
         }
+        for(const element of TweenManager._elementSet)
+        {
+            element.playTweenComposed();
+        }
+        TweenManager._elementSet.clear();
         TweenManager._tmpTweens = [];
     }
 
@@ -131,6 +148,11 @@ export class TweenManager {
             }
             _totalActiveTweens = freePosStart;
         }
+    }
+
+    public static returnTween(tween: GTweener): void
+    {
+        _tweenerPool.returns(tween);
     }
 }
 
