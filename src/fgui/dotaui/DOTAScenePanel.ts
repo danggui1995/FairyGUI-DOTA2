@@ -134,6 +134,17 @@ export class DOTAScenePanel extends UIElement {
         // this.scenePanel.style.marginTop = -this.height / 2 + "px";
     }
 
+    public setSceneWithParams(params: any)
+    {
+        if (this.scenePanel != undefined)
+        {
+            this.scenePanel.DeleteAsync(1);
+        }
+        this.scenePanel = $.CreatePanelWithProperties('DOTAScenePanel', this.nativePanel, this.$owner.name, params);
+        this.scenePanel.style.width = "100%";
+        this.scenePanel.style.height = "100%";
+    }
+
     public init() {
         this.nativePanel = $.CreatePanel( "Panel", $('#HiddenRoot'), this.$owner.name);
     }

@@ -370,6 +370,12 @@ export class GTweener {
         }
     }
 
+    public TweenFinish()
+    {
+        this._killed = true;
+        this.callCompleteCallback();
+    }
+
     private update(): void {
         this._ended = 0;
 

@@ -106,36 +106,16 @@ export class UIElement extends DotaPanel {
     }
 
     public setPosition(x: number, y: number): void {
-        // if (this._pos.x != x || this._pos.y != y) {
+        if (this._pos.x != x || this._pos.y != y) {
             this._pos.set(x, y);
 
             this.nativePanel.style.marginLeft = x + "px";
             this.nativePanel.style.marginTop = y + "px";
-        // }
+        }
     }
 
     protected removeExpiredTween(tween?: CssTween): boolean
     {
-        // for (const [propName, tweenArr] of this._tweenRunning) {
-        //     for (let i = tweenArr.length - 1; i >= 0; i--) {
-        //         let t = this._tweenQueue[i];
-        //         if (t.duration < 0) {
-        //             tweenArr.splice(i, 1);
-        //         }
-        //     }
-        // }
-
-        // for (let i = this._tweenQueue.length - 1; i >= 0; i--) {
-        //     let t = this._tweenQueue[i];
-        //     if (t.duration < 0) {
-        //         this._tweenQueue.splice(i, 1);
-        //     }
-        //     else if (tween && t.propType == tween.propType && t.priority == tween.priority && tween.startTime <= t.endTime - 0.02)
-        //     {
-        //         return true;
-        //     }
-        // }
-
         for (const [propName, tweenArr] of this._tweenTest) {
             for (let i = tweenArr.length - 1; i >= 0; i--) {
                 let t = tweenArr[i];
@@ -439,10 +419,10 @@ export class UIElement extends DotaPanel {
         return this._rot;
     }
     public set rotation(value: number) {
-        // if (this._rot != value) {
+        if (this._rot != value) {
             this._rot = value;
             this.nativePanel.style.preTransformRotate2d = `${value}deg`;
-        // }
+        }
     }
 
     public get parent(): UIElement | undefined {

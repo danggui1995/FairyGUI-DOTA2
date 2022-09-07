@@ -42,7 +42,7 @@ export class TweenManager {
             else if (tweener.target.target && tweener.target.target.element) {
                 element = tweener.target.target.element;
             }
-            if (!TweenManager._elementSet.has(element))
+            if (element && !TweenManager._elementSet.has(element))
             {
                 TweenManager._elementSet.add(element);
             }
