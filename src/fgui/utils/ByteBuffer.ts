@@ -1,6 +1,39 @@
-
 import { Color } from "../math/Color";
-import { TextDecoder } from "text-encoding";
+
+
+function Utf8ArrayToStr(array : Uint8Array):string 
+{
+    var i, len, c;
+    var char2, char3;
+  
+    let out: any[] = [];
+    len = array.length;
+    i = 0;
+    while (i < len) {
+      c = array[i++];
+      switch (c >> 4)
+      { 
+        case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+          // 0xxxxxxx
+          out.push(String.fromCharCode(c));
+          break;
+        case 12: case 13:
+          // 110x xxxx   10xx xxxx
+          char2 = array[i++];
+          out.push(String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F)));
+          break;
+        case 14:
+          // 1110 xxxx  10xx xxxx  10xx xxxx
+          char2 = array[i++];
+          char3 = array[i++];
+          out.push(String.fromCharCode(((c & 0x0F) << 12) |
+                                     ((char2 & 0x3F) << 6) |
+                                     ((char3 & 0x3F) << 0)));
+          break;
+      }
+    }    
+    return out.join('');
+  }
 
 export class ByteBuffer {
     public stringTable: Array<string>;
@@ -105,8 +138,7 @@ export class ByteBuffer {
         if (len == undefined) len = this.readUshort();
         this.validate(len);
         
-        let decoder = new TextDecoder();
-        let ret: string = decoder.decode(new Uint8Array(this._buffer, this._view.byteOffset + this._pos, len));
+        let ret: string = Utf8ArrayToStr(new Uint8Array(this._buffer, this._view.byteOffset + this._pos, len));
         this._pos += len;
 
         return ret;

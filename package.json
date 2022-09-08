@@ -1,6 +1,5 @@
 {
     "devDependencies": {
-        "@types/text-encoding": "0.0.36",
         "gulp": "^4.0.2",
         "rollup-plugin-node-resolve": "^5.2.0",
         "typescript": "^4.5.4"
@@ -11,7 +10,6 @@
         "gulp-typescript": "^6.0.0-alpha.1",
         "gulp-uglify-es": "^3.0.0",
         "rollup": "^2.61.1",
-        "rollup-plugin-commonjs": "^10.1.0",
-        "text-encoding": "^0.7.0"
+        "rollup-plugin-commonjs": "^10.1.0"
     }
 }

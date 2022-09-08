@@ -4,7 +4,6 @@ import { PackageItem } from "./PackageItem";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { Margin } from "../math/Margin";
 import { Constructor } from "../utils/ToolSet";
-import { AbUtil } from "../utils/AbUtil";
 import { UIConfig } from "./UIConfig";
 
 type PackageDependency = { id: string, name: string };
@@ -59,22 +58,6 @@ export class UIPackage {
 
     public static getByName(name: string): UIPackage {
         return _instByName[name];
-    }
-
-
-    public static loadPackage(pkgName: string, binData: string){
-        let pkg: UIPackage = _instById[pkgName];
-        if (pkg) {
-            return;
-        }
-
-        var ab = AbUtil.decode(binData);
-        pkg = new UIPackage();
-        pkg.loadPackage(new ByteBuffer(ab), pkgName);
-
-        _instById[pkg.id] = pkg;
-        _instByName[pkg.name] = pkg;
-        _instById[pkg.path] = pkg;
     }
 
     public static loadPackageWithArrayBuffer(pkgName: string, ab: ArrayBuffer){
