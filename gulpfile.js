@@ -5,7 +5,6 @@ const rename = require("gulp-rename");
 const uglify = require('gulp-uglify-es').default;
 const tsProject = ts.createProject('tsconfig.json', { declaration: true });
 const resolve = require('rollup-plugin-node-resolve')
-const commonjs = require('rollup-plugin-commonjs')
 const clean = require('gulp-clean')
 
 const onwarn = warning => {
@@ -42,12 +41,7 @@ gulp.task("rollup", async function() {
             globals: { three: 'three' }
         },
         plugins: [
-            resolve(),
-            commonjs({
-                'namedExports': {
-                    'src/encoding/index.js': ['TextDecoder']
-                }
-            })
+            resolve()
         ]
     };
     const subTask2 = await rollup.rollup(config);
@@ -84,9 +78,8 @@ gulp.task('build', gulp.series(
     gulp.parallel('buildJs'),
     gulp.parallel('rollup'),
     gulp.parallel('cleanJs'),
-    // gulp.parallel('uglify'),
     gulp.parallel('move'),
     gulp.parallel('movejs'),
     gulp.parallel('movetypes'),
-    gulp.parallel('finalclean')
+    gulp.parallel('finalclean'),
 ))
