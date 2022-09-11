@@ -205,7 +205,7 @@ export class GTextField extends GObject {
             if (this._element.autoSize == AutoSizeType.Height) {
                 this._element.width = this.width;//先调整宽度，让文本重排
                 if (this._text != "") //文本为空时，1是本来就不需要调整， 2是为了防止改掉文本为空时的默认高度，造成关联错误
-                    this.setSizeDirectly(this.width, this._element.height);
+                    this._element.height = this.height;
             }
             else
             {
