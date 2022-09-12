@@ -5,6 +5,7 @@ import { evaluateEase } from "./EaseManager";
 import { Vec2 } from "../math/Vec2";
 import { convertToHtmlColor } from "../utils/ToolSet";
 import { TweenManager } from "./TweenManager";
+import { TextField } from "../FairyGUI";
 
 var s_vec2: Vec2 = new Vec2();
 
@@ -46,6 +47,7 @@ export class GTweener {
     private _normalizedTime: number;
 
     public actionType?: ActionType;
+    public cssTweener ?: CssTween;
 
     public constructor() {
         this._startValue = new TweenValue();
@@ -536,14 +538,11 @@ export class GTweener {
 
     public playNative():void
     {
-        let element;
-        if (this.target && this.target.element) {
-            element = this.target.element;
+        let target;
+        if (this.target) {
+            target = this.target;
         }
-        else if (this.target.target && this.target.target.element) {
-            element = this.target.target.element;
-        }
-        if (element)
+        if (target)
         {
             let endx = this.endValue.x;
             let endy = this.endValue.y;
@@ -583,8 +582,8 @@ export class GTweener {
                     tween2.duration = this.duration;
                     tween2.tweener = this;
 
-                    element.appendTween(tween1);
-                    element.appendTween(tween2);
+                    target.appendTween(tween1);
+                    target.appendTween(tween2);
                     break;
                 }
                 case ActionType.Alpha:
@@ -594,7 +593,10 @@ export class GTweener {
                 }
                 case ActionType.Color:
                 {
-                    csstween = new CssTween("background-color", `${convertToHtmlColor(this.endValue.color)}`, 0);
+                    if (target.element instanceof TextField)
+                        csstween = new CssTween("color", `${convertToHtmlColor(this.endValue.color)}`, 0);
+                    else
+                        csstween = new CssTween("background-color", `${convertToHtmlColor(this.endValue.color)}`, 0);
                     break;
                 }
                 case ActionType.Skew:
@@ -613,7 +615,8 @@ export class GTweener {
                 csstween.delay = this.delay;
                 csstween.duration = this.duration;
                 csstween.tweener = this;
-                element.appendTween(csstween);
+                target.appendTween(csstween);
+                this.cssTweener = csstween;
             }
         }
     }
@@ -631,19 +634,6 @@ export class CssTween
     public startTime : number;
     public hasStarted: boolean;
     public tweener : GTweener;
-
-    public get classBase(): string
-    {
-        return `FGUI_Transition_${this.propType}_${this.ease}`;
-    }
-    public get classDuration(): string
-    {
-        return `FGUI_Transition_Duration_${Math.floor(this.duration * 100)}`;
-    }
-    public get classDelay(): string
-    {
-        return `FGUI_Transition_Delay_${Math.floor(this.delay * 100)}`;
-    }
     
     public constructor(v1:string, v2:string, v6:number)
     {
@@ -662,7 +652,7 @@ export class CssTween
     };
     public get duration(): number
     {
-        return this.endTime - Game.Time();
+        return this.endTime - this.startTime;
     }
 
     public tostring(): string

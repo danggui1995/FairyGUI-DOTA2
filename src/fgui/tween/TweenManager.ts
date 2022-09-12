@@ -6,11 +6,11 @@ import { UIConfig } from "../FairyGUI";
 export class TweenManager {
     private static _tmpTweens : GTweener[] = [];
     private static _delayTimer : ScheduleID;
-    private static _elementSet : Set<any> = new Set;
+    private static _targetSet : Set<any> = new Set;
 
     public static createTween(): GTweener {
         var tweener: GTweener = _tweenerPool.borrow();
-        if (UIConfig.useNativeTransition == false)
+        // if (UIConfig.useNativeTransition == false)
         {
             if (!_inited) {
                 Timers.addUpdate(TweenManager.update);
@@ -18,40 +18,52 @@ export class TweenManager {
             }
             _activeTweens[_totalActiveTweens++] = tweener;
         }
-        else
-        {
-            TweenManager._tmpTweens.push(tweener);
-            if (!TweenManager._delayTimer)
-            {
-                TweenManager._delayTimer = $.Schedule(0.01, TweenManager.DelayPlayTween);
-            }
-        }
+        // else
+        // {
+        //     tweener._killed = false;
+        //     TweenManager._tmpTweens.push(tweener);
+        //     if (!TweenManager._delayTimer)
+        //     {
+        //         TweenManager._delayTimer = $.Schedule(0.01, TweenManager.DelayPlayTween);
+        //     }
+        // }
         return tweener;
     }
 
     protected static DelayPlayTween()
     {
         TweenManager._delayTimer = null;
-        for(const tweener of TweenManager._tmpTweens)
+        _todelete = [];
+        for(let i = 0; i < TweenManager._tmpTweens.length; i++)
         {
-            tweener.playNative();
-            let element;
-            if (tweener.target && tweener.target.element) {
-                element = tweener.target.element;
-            }
-            else if (tweener.target.target && tweener.target.target.element) {
-                element = tweener.target.target.element;
-            }
-            if (element && !TweenManager._elementSet.has(element))
+            let tweener = TweenManager._tmpTweens[i];
+            if (tweener.target && !tweener._killed)
             {
-                TweenManager._elementSet.add(element);
+                tweener.playNative();
+                let target;
+                if (tweener.target) {
+                    target = tweener.target;
+                }
+                if (target && !TweenManager._targetSet.has(target))
+                {
+                    TweenManager._targetSet.add(target);
+                }
+            }
+            else
+            {
+                _todelete.push(i);
             }
         }
-        for(const element of TweenManager._elementSet)
+        for(const target of TweenManager._targetSet)
         {
-            element.playTweenComposed();
+            target.playTweenComposed();
         }
-        TweenManager._elementSet.clear();
+        for(let i = 0; i < _todelete.length; i++)
+        {
+            TweenManager._tmpTweens.splice(_todelete[i], 1);
+        }
+
+        TweenManager._targetSet.clear();
         TweenManager._tmpTweens = [];
     }
 
@@ -160,3 +172,4 @@ var _activeTweens: GTweener[] = new Array();
 var _tweenerPool: Pool<GTweener> = new Pool<GTweener>(GTweener, e => e._init(), e => e._reset());
 var _totalActiveTweens: number = 0;
 var _inited: boolean = false;
+var _todelete : any[] = [];

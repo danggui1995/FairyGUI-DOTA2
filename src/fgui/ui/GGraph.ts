@@ -3,6 +3,8 @@ import { ObjectPropID } from "./FieldTypes";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { Shape } from "../core/Shape";
 import { UIElement } from "../core/UIElement";
+import { ActionType } from "../FairyGUI";
+import { CssTween } from "../tween/GTweener";
 
 export class GGraph extends GObject {
     protected _element: Shape;
@@ -15,17 +17,6 @@ export class GGraph extends GObject {
         this._element = new Shape();
         this._element.$owner = this;
         this._element.init();
-    }
-
-    public get color(): number {
-        return this._element.color;
-    }
-
-    public set color(value: number) {
-        if (this._element.color != value) {
-            this._element.color = value;
-            this.updateGear(4);
-        }
     }
 
     public get element(): Shape {
@@ -86,6 +77,23 @@ export class GGraph extends GObject {
             this.color = value;
         else
             super.setProp(index, value);
+    }
+
+    public onTweenStart(tween: CssTween): void
+    {
+        switch(tween.tweener.actionType)
+        {
+            case ActionType.Color:
+            {
+                this.color = tween.tweener.startValue.color;
+                break;
+            }
+            default:
+            {
+                super.onTweenStart(tween);
+                break;
+            }
+        }
     }
 
     public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {

@@ -23,8 +23,8 @@ export class GTween {
         return TweenManager.createTween()._to4(start, start2, start3, start4, end, end2, end3, end4, duration, actionType);
     }
 
-    public static toColor(start: number, end: number, duration: number, actionType?: ActionType): GTweener {
-        return TweenManager.createTween()._toColor(start, end, duration, actionType);
+    public static toColor(start: number, end: number, duration: number): GTweener {
+        return TweenManager.createTween()._toColor(start, end, duration, ActionType.Color);
     }
 
     public static delayedCall(delay: number): GTweener {

@@ -5,34 +5,11 @@ import { CssTween } from "../tween/GTweener";
 import { ActionType } from "../FairyGUI";
 
 export class Shape extends UIElement {
-    protected _color: number;
-    protected _type: number;
-
-    constructor() {
-        super();
-
-        this._color = 0xFFFFFF;
-        this._type = 0;
-    }
-
     public init() {
         super.init();
 
         this.initElement();
         this.setNotInteractable();
-    }
-
-    public get color(): number {
-        return this._color;
-    }
-    public set color(value: number) {
-        if (this._color != value) {
-            if (this._type != 0)
-            {
-                this._color = value;
-                this.nativePanel.style.backgroundColor = convertToHtmlColor(value);
-            }
-        }
     }
 
     public drawRect(lineWidth: number, lineColor: Color, fillColor: Color) {
@@ -84,42 +61,8 @@ export class Shape extends UIElement {
         this.setType(0);
     }
 
-    public setType(type: number) {
-        if (this._type == 0) {
-            if (type != 0) {
-                this._touchDisabled = false;
-                this.updateTouchableFlag();
-            }
-        }
-        else {
-            if (type == 0) {
-                this.nativePanel.style.backgroundColor = "transparent";
-                this.nativePanel.style.border = "0px solid";
-                this.setNotInteractable();
-            }
-        }
-        this._type = type;
-    }
-
     protected onSizeChanged(): void {
         this.nativePanel.style.width = this._contentRect.width + "px";
         this.nativePanel.style.height = this._contentRect.height + "px";
-    }
-
-    protected onTweenStart(tween: CssTween): void
-    {
-        switch(tween.tweener.actionType)
-        {
-            case ActionType.Color:
-            {
-                this.color = tween.tweener.startValue.color;
-                break;
-            }
-            default:
-            {
-                super.onTweenStart(tween);
-                break;
-            }
-        }
     }
 }

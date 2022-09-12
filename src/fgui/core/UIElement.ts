@@ -1,26 +1,17 @@
 import { EventPool } from "../event/Event";
-import { ActionType } from "../FairyGUI";
 import { Rect } from "../math/Rect";
 import { Vec2 } from "../math/Vec2";
-import { CssTween, GTweener } from "../tween/GTweener";
-import { TweenValue } from "../tween/TweenValue";
 import { FlipType } from "../ui/FieldTypes";
 import { GObject, PanelEventSet } from "../ui/GObject";
+import { convertToHtmlColor } from "../utils/ToolSet";
 import { DotaPanel } from "./DotaPanel";
 import { IStage } from "./IStage";
-
-export function transformCompare(a:any, b:any)
-{
-    if (a[1] < b[1])
-    {
-        return -1;
-    }
-    return 1;
-}
 
 export class UIElement extends DotaPanel {
     public $owner ?: GObject;
 
+    public _color: number;
+    protected _type: number;
     protected _alpha: number;
     protected _touchable: boolean;
     protected _touchDisabled?: boolean;
@@ -51,9 +42,6 @@ export class UIElement extends DotaPanel {
 
     private _gTouchable : boolean;
 
-    private _tweenInit : boolean;
-    private _tweenTest : Map<string, CssTween[]>;
-
     public constructor() {
         super();
 
@@ -74,9 +62,8 @@ export class UIElement extends DotaPanel {
         this._tabStopChildren = false;
         this._gTouchable = undefined;
         this._skew = new Vec2(0, 0);
-
-        this._tweenInit = false;
-        this._tweenTest = new Map;
+        this._color = 0xFFFFFF;
+        this._type = 0;
     }
 
     public initElement()
@@ -111,185 +98,6 @@ export class UIElement extends DotaPanel {
 
             this.nativePanel.style.marginLeft = x + "px";
             this.nativePanel.style.marginTop = y + "px";
-        }
-    }
-
-    protected removeExpiredTween(tween?: CssTween): boolean
-    {
-        for (const [propName, tweenArr] of this._tweenTest) {
-            for (let i = tweenArr.length - 1; i >= 0; i--) {
-                let t = tweenArr[i];
-                if (t.duration < 0) {
-                    tweenArr.splice(i, 1);
-                }
-            }
-        }
-
-
-        return false;
-    }
-
-    public appendTween(tween: CssTween):void
-    {
-        if (this._tweenInit == false)
-        {
-            this._tweenInit = true;
-            this.$owner.RegisterEventHandler('PropertyTransitionEnd', (_: any, propName: string)=>{
-                let runningTweens = this._tweenTest.get(propName)
-                if (runningTweens && runningTweens.length > 0)
-                {
-                    let topTween = runningTweens.shift();
-                    this.onTweenStop(topTween);
-                    this.removeExpiredTween();
-                    this.checkPlayTween();
-                    topTween.kill();
-                }
-            });
-        }
-
-        this.removeExpiredTween();
-        if (this._tweenTest.has(tween.propType))
-        {
-            let allTweens = this._tweenTest.get(tween.propType)
-            if (allTweens.length > 0)
-            {
-                let lastTween = allTweens[allTweens.length - 1];
-                if (lastTween.endTime - 0.02 < tween.startTime)
-                {
-                    allTweens.push(tween);
-                }
-            }
-            else
-            {
-                allTweens.push(tween);
-            }
-        }
-        else
-        {
-            this._tweenTest.set(tween.propType, [tween]);
-        }
-    }
-
-    protected onTweenReset(actionType: ActionType, startValue: TweenValue): void
-    {
-        switch(actionType)
-        {
-            case ActionType.XY:
-            {
-                this.setPosition(startValue.x, startValue.y);
-                break;
-            }
-            case ActionType.Alpha:
-            {
-                this.alpha = startValue.x;
-                break;
-            }
-            case ActionType.Scale:
-            {
-                this.setScale(startValue.x, startValue.y);
-                break;
-            }
-            case ActionType.Rotation:
-            {
-                this.rotation = startValue.x;
-                break;
-            }
-            case ActionType.Size:
-            {
-                this.setSize(startValue.x, startValue.y);
-                break;
-            }
-            case ActionType.Skew:
-            {
-                this.setSkew(startValue.x, startValue.y);
-                break;
-            }
-            default:
-            {
-                break;
-            }
-        }
-    }
-
-    protected onTweenStart(tween : CssTween)
-    {
-        if (!tween.hasStarted)
-        {
-            tween.hasStarted = true;
-            this.nativePanel.style.transition = null;
-            this.nativePanel.style.transform = null;
-            let tweener = tween.tweener;
-            this.onTweenReset(tweener.actionType, tweener.startValue);
-        }
-    }
-
-    protected onTweenStop(tween : CssTween)
-    {
-        this.nativePanel.style.transition = null;
-        this.nativePanel.style.transform = null;
-        let tweener = tween.tweener;
-        this.onTweenReset(tweener.actionType, tweener.endValue);
-    }
-
-    public playTweenComposed(): void
-    {
-        for (const [propName, tweenArr] of this._tweenTest) {
-            for (let i = tweenArr.length - 1; i >= 0; i--) {
-                let t = tweenArr[i];
-                if (t.duration < 0)
-                {
-                    t.kill();
-                    tweenArr.splice(i, 1);
-                }
-            }
-        }
-
-        this.checkPlayTween();
-    }
-
-    protected checkPlayTween(): void
-    {
-        let keylist = [];
-        let valuemap: Map<string, string[]> = new Map;
-
-        for(let [propType, tweenArr] of this._tweenTest)
-        {
-            if (tweenArr.length > 0)
-            {
-                let tween = tweenArr[0];
-                if (tween.duration > 0)
-                {
-                    let propKey = `${propType} ${tween.duration}s ${tween.ease} 0s`;
-                    keylist.push(propKey);
-                    let valuemapArr = valuemap.get(propType);
-                    if (valuemapArr)
-                    {
-                        valuemapArr.push(tween.propValue);
-                    }
-                    else
-                    {
-                        valuemap.set(propType, [tween.propValue]);
-                    }
-                    this.onTweenStart(tween);
-                }
-                else
-                {
-                    tweenArr.shift();
-                }
-            }
-        }
-
-        if (keylist.length > 0)
-        {
-            this.nativePanel.style.transition = keylist.join(',');
-            for(let [k, v] of valuemap)
-            {
-                if (v.length > 1)
-                {
-                    v.sort(transformCompare);
-                }
-                (this.nativePanel.style as any)[k] = v.join(' ');
-            }
         }
     }
 
@@ -750,5 +558,35 @@ export class UIElement extends DotaPanel {
 
         arr.length = 0;
         EventPool.returns(ev);
+    }
+
+    public get color(): number {
+        return this._color;
+    }
+    public set color(value: number) {
+        if (this._color != value) {
+            if (this._type != 0)
+            {
+                this._color = value;
+                this.nativePanel.style.backgroundColor = convertToHtmlColor(value);
+            }
+        }
+    }
+
+    public setType(type: number) {
+        if (this._type == 0) {
+            if (type != 0) {
+                this._touchDisabled = false;
+                this.updateTouchableFlag();
+            }
+        }
+        else {
+            if (type == 0) {
+                this.nativePanel.style.backgroundColor = "transparent";
+                this.nativePanel.style.border = "0px solid";
+                this.setNotInteractable();
+            }
+        }
+        this._type = type;
     }
 }

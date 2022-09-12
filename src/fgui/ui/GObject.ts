@@ -1,7 +1,6 @@
-import { UIElement } from "../core/UIElement";
 import { EventType } from "../event/Event";
 import { EventDispatcher } from "../event/EventDispatcher";
-import { GTweener } from "../FairyGUI";
+import { ActionType, GTweener, UIElement } from "../FairyGUI";
 import { GearAnimation } from "../gears/GearAnimation";
 import { GearBase } from "../gears/GearBase";
 import { GearColor } from "../gears/GearColor";
@@ -15,6 +14,8 @@ import { GearText } from "../gears/GearText";
 import { GearXY } from "../gears/GearXY";
 import { Rect } from "../math/Rect";
 import { Vec2 } from "../math/Vec2";
+import { CssTween } from "../tween/GTweener";
+import { TweenValue } from "../tween/TweenValue";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { Controller } from "./Controller";
 import { ObjectPropID, RelationType } from "./FieldTypes";
@@ -137,6 +138,8 @@ export class GObject extends EventDispatcher {
     public touchAction : 0 | 1;
     public tweener : GTweener;
     private _registedEvents : Map<string, any>;
+    private _tweenInit : boolean;
+    private _tweenListMap : Map<string, CssTween[]>;
     
     constructor(name ?: string) {
         super();
@@ -154,6 +157,9 @@ export class GObject extends EventDispatcher {
         this._updateRegisted = false;
         this._pivotStr = "0% 0%";
         this._registedEvents = new Map<string, any>();
+        
+        this._tweenInit = false;
+        this._tweenListMap = new Map;
     }
 
     public get id(): string {
@@ -356,7 +362,6 @@ export class GObject extends EventDispatcher {
             this._scaleX = sx;
             this._scaleY = sy;
             this.handleScaleChanged();
-
             this.updateGear(2);
         }
     }
@@ -1109,11 +1114,7 @@ export class GObject extends EventDispatcher {
                 this._updateRegisted = true;
                 GObject.RegisterUpdate(this);
 
-                let nativePanel = this.GetNativePanel();
-                if (nativePanel)
-                {
-                    nativePanel.AddClass(MouseOverStyle);
-                }
+                this.AddClass(MouseOverStyle);
             }
         }
         else if (PanelEventSet.has(evt))
@@ -1196,8 +1197,9 @@ export class GObject extends EventDispatcher {
     {
         if (this._element && this._element.nativePanel)
         {
-            this._element.nativePanel.RemoveClass(clsName);
-            this._element.nativePanel.AddClass(clsName);
+            // this._element.nativePanel.RemoveClass(clsName);
+            // this._element.nativePanel.AddClass(clsName);
+            this._element.nativePanel.SetHasClass(clsName, true);
         }
     }
 
@@ -1205,7 +1207,195 @@ export class GObject extends EventDispatcher {
     {
         if (this._element && this._element.nativePanel)
         {
-            this._element.nativePanel.RemoveClass(clsName);
+            // this._element.nativePanel.RemoveClass(clsName);
+            this._element.nativePanel.SetHasClass(clsName, false);
+        }
+    }
+
+    // region Tween
+   
+
+    protected removeExpiredTween(tween?: CssTween): boolean
+    {
+        for (const [propName, tweenArr] of this._tweenListMap) {
+            for (let i = tweenArr.length - 1; i >= 0; i--) {
+                let t = tweenArr[i];
+                if (t.duration < 0 || !t.tweener || t.tweener._killed)
+                {
+                    if (t.tweener && !t.tweener._killed)
+                        t.kill();
+                    tweenArr.splice(i, 1);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public appendTween(tween: CssTween):void
+    {
+        if (this._tweenInit == false)
+        {
+            this._tweenInit = true;
+            this.RegisterEventHandler('PropertyTransitionEnd', (_: any, propName: string)=>{
+                let runningTweens = this._tweenListMap.get(propName)
+                if (runningTweens && runningTweens.length > 0)
+                {
+                    let topTween = runningTweens.shift();
+                    this.onTweenStop(topTween);
+
+                    this.removeExpiredTween();
+                    this.checkPlayTween();
+                }
+            });
+        }
+
+        this.removeExpiredTween();
+        if (this._tweenListMap.has(tween.propType))
+        {
+            let allTweens = this._tweenListMap.get(tween.propType)
+            if (allTweens.length > 0)
+            {
+                let lastTween = allTweens[allTweens.length - 1];
+                if (lastTween.endTime - 0.02 < tween.startTime)
+                {
+                    allTweens.push(tween);
+                }
+            }
+            else
+            {
+                allTweens.push(tween);
+            }
+        }
+        else
+        {
+            this._tweenListMap.set(tween.propType, [tween]);
+        }
+    }
+
+    protected onTweenReset(actionType: ActionType, startValue: TweenValue): void
+    {
+        switch(actionType)
+        {
+            case ActionType.XY:
+            {
+                this._element.nativePanel.style.transform = null;
+                this.setPosition(startValue.x, startValue.y, null, true);
+                break;
+            }
+            case ActionType.Alpha:
+            {
+                this.alpha = startValue.x;
+                break;
+            }
+            case ActionType.Scale:
+            {
+                this.setScale(startValue.x, startValue.y);
+                break;
+            }
+            case ActionType.Rotation:
+            {
+                this.rotation = startValue.x;
+                break;
+            }
+            case ActionType.Size:
+            {
+                this.setSize(startValue.x, startValue.y);
+                break;
+            }
+            case ActionType.Skew:
+            {
+                this.setSkew(startValue.x, startValue.y);
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
+    }
+
+    public onTweenStart(tween : CssTween)
+    {
+        if (!tween.hasStarted)
+        {
+            tween.hasStarted = true;
+            this._element.nativePanel.style.transition = null;
+            this._element.nativePanel.style.transform = null;
+            let tweener = tween.tweener;
+            this.onTweenReset(tweener.actionType, tweener.startValue);
+        }
+    }
+
+    public onTweenStop(tween : CssTween)
+    {
+        this._element.nativePanel.style.transition = null;
+        this._element.nativePanel.style.transform = null;
+        let tweener = tween.tweener;
+        this.onTweenReset(tweener.actionType, tweener.endValue);
+    }
+
+    public playTweenComposed(): void
+    {
+        this.removeExpiredTween();
+        this.checkPlayTween();
+    }
+
+    protected checkPlayTween(): void
+    {
+        let keylist = [];
+        let valuemap: Map<string, string[]> = new Map;
+
+        for(let [propType, tweenArr] of this._tweenListMap)
+        {
+            if (tweenArr.length > 0)
+            {
+                let tween = tweenArr[0];
+                if (tween.duration > 0)
+                {
+                    let propKey = `${propType} ${tween.duration}s ${tween.ease} 0s`;
+                    keylist.push(propKey);
+
+                    let valuemapArr = valuemap.get(propType);
+                    if (valuemapArr)
+                    {
+                        valuemapArr.push(tween.propValue);
+                    }
+                    else
+                    {
+                        valuemap.set(propType, [tween.propValue]);
+                    }
+                    this.onTweenStart(tween);
+                }
+                else
+                {
+                    tweenArr.shift();
+                }
+            }
+        }
+
+        if (valuemap.size > 0)
+        {
+            this._element.nativePanel.style.transition = keylist.join(',');
+            for(let [k, v] of valuemap)
+            {
+                if (v.length > 1)
+                {
+                    v.sort(transformCompare);
+                }
+                (this._element.nativePanel.style as any)[k] = v.join(' ');
+            }
+        }
+    }
+
+    public get color(): number {
+        return this._element.color;
+    }
+
+    public set color(value: number) {
+        if (this._element.color != value) {
+            this._element.color = value;
+            this.updateGear(4);
         }
     }
 
@@ -1287,5 +1477,31 @@ var s_vec2: Vec2 = new Vec2();
 
 export var gInstanceCounter: number = 0;
 export var constructingDepth: { n: number } = { n: 0 };
+export function transformCompare(a:any, b:any)
+{
+    if (a[1] < b[1])
+    {
+        return -1;
+    }
+    return 1;
+}
+
+const s_transitionPropertys = new Map<string, number>([
+    ["color", 1],
+    ["backgroundColor", 2],
+    ["transform", 3],
+    ["preTransformScale2d", 4],
+    ["preTransformRotate2d", 5],
+    ["width", 6],
+    ["height", 7],
+    ["opacity", 8],
+]);
+
+const s_easeTypes = new Map<string, number>([
+    ["ease", 1],
+    ["ease-in", 2],
+    ["ease-out", 3],
+    ["ease-in-out", 4],
+]);
 
 GObject.InitGlobalUpdate();

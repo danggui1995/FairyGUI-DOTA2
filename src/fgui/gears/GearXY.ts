@@ -1,3 +1,4 @@
+import { ActionType, UIConfig } from "../FairyGUI";
 import { GTween } from "../tween/GTween";
 import { GTweener } from "../tween/GTweener";
 import { ByteBuffer } from "../utils/ByteBuffer";
@@ -16,6 +17,7 @@ export class GearXY extends GearBase {
             px: this._owner.x / this._owner.parent.width,
             py: this._owner.y / this._owner.parent.height
         };
+        
         this._storage = {};
     }
 
@@ -57,7 +59,8 @@ export class GearXY extends GearBase {
 
         if (this.allowTween) {
             if (this._tweenConfig._tweener) {
-                if (this._tweenConfig._tweener.endValue.x != ex || this._tweenConfig._tweener.endValue.y != ey) {
+                if (this._tweenConfig._tweener.endValue.x != ex || this._tweenConfig._tweener.endValue.y != ey) 
+                {
                     this._tweenConfig._tweener.kill(true);
                     this._tweenConfig._tweener = null;
                 }
@@ -67,17 +70,24 @@ export class GearXY extends GearBase {
 
             var ox: number = this._owner.x;
             var oy: number = this._owner.y;
-
             if (ox != ex || oy != ey) {
                 if (this._owner.checkGearController(0, this._controller))
                     this._tweenConfig._displayLockToken = this._owner.addDisplayLock();
 
-                this._tweenConfig._tweener = GTween.to2(ox, oy, ex, ey, this._tweenConfig.duration)
+                this._tweenConfig._tweener = GTween.to2(ox, oy, ex, ey, this._tweenConfig.duration, ActionType.XY)
                     .setDelay(this._tweenConfig.delay)
                     .setEase(this._tweenConfig.easeType)
-                    .setTarget(this)
-                    .onUpdate(this.__tweenUpdate, this)
                     .onComplete(this.__tweenComplete, this);
+
+                // if (UIConfig.useNativeTransition)
+                // {
+                //     this._tweenConfig._tweener.setTarget(this._owner)
+                // }
+                // else
+                {
+                    this._tweenConfig._tweener.setTarget(this)
+                    this._tweenConfig._tweener.onUpdate(this.__tweenUpdate, this)
+                }
             }
         }
         else {
@@ -104,14 +114,9 @@ export class GearXY extends GearBase {
     public updateState(): void {
         var pt: GearXYValue = this._storage[this._controller.selectedPageId];
         if (!pt) {
-            pt = {};
+            pt = this._default;
             this._storage[this._controller.selectedPageId] = pt;
         }
-
-        pt.x = this._owner.x;
-        pt.y = this._owner.y;
-        pt.px = this._owner.x / this._owner.parent.width;
-        pt.py = this._owner.y / this._owner.parent.height;
     }
 
     public updateFromRelations(dx: number, dy: number): void {

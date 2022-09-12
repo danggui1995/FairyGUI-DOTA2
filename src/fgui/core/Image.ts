@@ -38,7 +38,6 @@ export const GridStyleMap : string[][] = [
 
 export class Image extends UIElement {
     protected _src: string;
-    protected _color: number;
 
     protected _scaleByTile: boolean;
     protected _scale9Grid: Margin;
@@ -70,16 +69,6 @@ export class Image extends UIElement {
             this._src = value;
             this._textureScale.set(1, 1);
             this.refresh();
-        }
-    }
-
-    public get color(): number {
-        return this._color;
-    }
-    public set color(value: number) {
-        if (this._color != value) {
-            this._color = value;
-            this.updateFilters();
         }
     }
 

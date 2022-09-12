@@ -163,17 +163,6 @@ export class GLoader extends GObject {
         }
     }
 
-    public get color(): number {
-        return this._content.color;
-    }
-
-    public set color(value: number) {
-        if (this._content.color != value) {
-            this._content.color = value;
-            this.updateGear(4);
-        }
-    }
-
     public get fillMethod(): number {
         return this._content.fillMethod;
     }
