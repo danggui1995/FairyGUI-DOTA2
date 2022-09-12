@@ -449,7 +449,7 @@ export class GButton extends GComponent {
     }
 
     private __rollover(): void {
-        if (!this._buttonController || !this._buttonController.hasPage("over"))
+        if (!this._buttonController || !this.touchable || !this._buttonController.hasPage("over"))
             return;
 
         this._over = true;
@@ -463,7 +463,7 @@ export class GButton extends GComponent {
     }
 
     private __rollout(): void {
-        if (!this._buttonController || !this._buttonController.hasPage("over"))
+        if (!this._buttonController || !this.touchable || !this._buttonController.hasPage("over"))
             return;
 
         this._over = false;

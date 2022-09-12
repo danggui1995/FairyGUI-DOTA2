@@ -1168,6 +1168,10 @@ export class GObject extends EventDispatcher {
 
     public processUpdate(isLeftDown : boolean) : void
     {
+        if (!this._touchable)
+        {
+            return;
+        }
         if (isLeftDown)
         {
             if (this.touchAction == 1)
