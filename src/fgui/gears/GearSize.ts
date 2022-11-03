@@ -1,4 +1,4 @@
-import { ActionType, GTweener, UIConfig } from "../FairyGUI";
+import { GTweener } from "../FairyGUI";
 import { GTween } from "../tween/GTween";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { GearBase } from "./GearBase";
@@ -52,21 +52,13 @@ export class GearSize extends GearBase {
                 if (this._owner.checkGearController(0, this._controller))
                     this._tweenConfig._displayLockToken = this._owner.addDisplayLock();
 
-                this._tweenConfig._tweener = GTween.to4(this._owner.width, this._owner.height, this._owner.scaleX, this._owner.scaleY, gv.width, gv.height, gv.scaleX, gv.scaleY, this._tweenConfig.duration, ActionType.Size)
+                this._tweenConfig._tweener = GTween.to4(this._owner.width, this._owner.height, this._owner.scaleX, this._owner.scaleY, gv.width, gv.height, gv.scaleX, gv.scaleY, this._tweenConfig.duration)
                     .setDelay(this._tweenConfig.delay)
                     .setEase(this._tweenConfig.easeType)
                     .setUserData((a ? 1 : 0) + (b ? 2 : 0))
+                    .setTarget(this)
+                    .onUpdate(this.__tweenUpdate, this)
                     .onComplete(this.__tweenComplete, this);
-
-                // if (UIConfig.useNativeTransition)
-                // {
-                //     this._tweenConfig._tweener.setTarget(this._owner)
-                // }
-                // else
-                {
-                    this._tweenConfig._tweener.setTarget(this)
-                    this._tweenConfig._tweener.onUpdate(this.__tweenUpdate, this)
-                }
             }
         }
         else {

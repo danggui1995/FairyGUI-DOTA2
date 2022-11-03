@@ -1,11 +1,8 @@
-import { EaseType, getEasePanorama } from "./EaseType";
+import { EaseType } from "./EaseType";
 import { GPath } from "./GPath";
-import { ActionType, TweenValue } from "./TweenValue";
+import { TweenValue } from "./TweenValue";
 import { evaluateEase } from "./EaseManager";
 import { Vec2 } from "../math/Vec2";
-import { convertToHtmlColor } from "../utils/ToolSet";
-import { TweenManager } from "./TweenManager";
-import { TextField } from "../FairyGUI";
 
 var s_vec2: Vec2 = new Vec2();
 
@@ -45,9 +42,6 @@ export class GTweener {
     private _ended: number;
     private _elapsedTime: number;
     private _normalizedTime: number;
-
-    public actionType?: ActionType;
-    public cssTweener ?: CssTween;
 
     public constructor() {
         this._startValue = new TweenValue();
@@ -124,11 +118,6 @@ export class GTweener {
         this._target = value;
         this._propType = propType;
         return this;
-    }
-
-    public setActionType(action: ActionType): void
-    {
-        this.actionType = action;
     }
 
     public get target(): any {
@@ -239,17 +228,16 @@ export class GTweener {
         this._killed = true;
     }
 
-    public _to(start: number, end: number, duration: number, actonType?: ActionType): GTweener {
+    public _to(start: number, end: number, duration: number): GTweener {
         this._valueSize = 1;
         this._startValue.x = start;
         this._endValue.x = end;
         this._value.x = start;
         this._duration = duration;
-        this.actionType = actonType;
         return this;
     }
 
-    public _to2(start: number, start2: number, end: number, end2: number, duration: number, actonType?: ActionType): GTweener {
+    public _to2(start: number, start2: number, end: number, end2: number, duration: number): GTweener {
         this._valueSize = 2;
         this._startValue.x = start;
         this._endValue.x = end;
@@ -258,12 +246,11 @@ export class GTweener {
         this._value.x = start;
         this._value.y = start2;
         this._duration = duration;
-        this.actionType = actonType;
         return this;
     }
 
     public _to3(start: number, start2: number, start3: number,
-        end: number, end2: number, end3: number, duration: number, actonType?: ActionType): GTweener {
+        end: number, end2: number, end3: number, duration: number): GTweener {
         this._valueSize = 3;
         this._startValue.x = start;
         this._endValue.x = end;
@@ -275,12 +262,11 @@ export class GTweener {
         this._value.y = start2;
         this._value.z = start3;
         this._duration = duration;
-        this.actionType = actonType;
         return this;
     }
 
     public _to4(start: number, start2: number, start3: number, start4: number,
-        end: number, end2: number, end3: number, end4: number, duration: number, actonType?: ActionType): GTweener {
+        end: number, end2: number, end3: number, end4: number, duration: number): GTweener {
         this._valueSize = 4;
         this._startValue.x = start;
         this._endValue.x = end;
@@ -295,27 +281,24 @@ export class GTweener {
         this._value.z = start3;
         this._value.w = start4;
         this._duration = duration;
-        this.actionType = actonType;
         return this;
     }
 
-    public _toColor(start: number, end: number, duration: number, actonType?: ActionType): GTweener {
+    public _toColor(start: number, end: number, duration: number): GTweener {
         this._valueSize = 4;
         this._startValue.color = start;
         this._endValue.color = end;
         this._value.color = start;
         this._duration = duration;
-        this.actionType = actonType;
         return this;
     }
 
-    public _shake(startX: number, startY: number, amplitude: number, duration: number, actonType?: ActionType): GTweener {
+    public _shake(startX: number, startY: number, amplitude: number, duration: number): GTweener {
         this._valueSize = 5;
         this._startValue.x = startX;
         this._startValue.y = startY;
         this._startValue.w = amplitude;
         this._duration = duration;
-        this.actionType = actonType;
         return this;
     }
 
@@ -372,12 +355,6 @@ export class GTweener {
         }
     }
 
-    public TweenFinish()
-    {
-        this._killed = true;
-        this.callCompleteCallback();
-    }
-
     private update(): void {
         this._ended = 0;
 
@@ -392,7 +369,7 @@ export class GTweener {
         if (!this._started) {
             if (this._elapsedTime < this._delay)
                 return;
-            
+
             this._started = true;
             this.callStartCallback();
             if (this._killed)
@@ -534,136 +511,5 @@ export class GTweener {
                 $.Msg("error in complete callback > " + err);
             }
         }
-    }
-
-    public playNative():void
-    {
-        let target;
-        if (this.target) {
-            target = this.target;
-        }
-        if (target)
-        {
-            let endx = this.endValue.x;
-            let endy = this.endValue.y;
-            let csstween;
-            switch(this.actionType)
-            {
-                case ActionType.XY:
-                {
-                    let newx = endx - this.startValue.x;
-                    let newy = endy - this.startValue.y;
-                    csstween = new CssTween("transform", `translate3d(${newx}px, ${newy}px, 0px)`, 4);
-                    break;
-                }
-                case ActionType.Rotation:
-                {
-                    csstween = new CssTween("pre-transform-rotate2d", `${endx}deg`, 0);
-                    break;
-                }
-                case ActionType.Scale:
-                {
-                    csstween = new CssTween("pre-transform-scale2d", `${endx}, ${endy}`, 0);
-                    break;
-                }
-                case ActionType.Size:
-                {
-                    let tween1 = new CssTween("width", `${endx}px`, 0);
-                    let tween2 = new CssTween("height", `${endy}px`, 0);
-
-                    let ease = getEasePanorama(this.easeType);
-                    tween1.ease = ease
-                    tween1.delay = this.delay;
-                    tween1.duration = this.duration;
-                    tween1.tweener = this;
-
-                    tween2.ease = ease;
-                    tween2.delay = this.delay;
-                    tween2.duration = this.duration;
-                    tween2.tweener = this;
-
-                    target.appendTween(tween1);
-                    target.appendTween(tween2);
-                    break;
-                }
-                case ActionType.Alpha:
-                {
-                    csstween = new CssTween("opacity", `${endx}`, 0);
-                    break;
-                }
-                case ActionType.Color:
-                {
-                    if (target.element instanceof TextField)
-                        csstween = new CssTween("color", `${convertToHtmlColor(this.endValue.color)}`, 0);
-                    else
-                        csstween = new CssTween("background-color", `${convertToHtmlColor(this.endValue.color)}`, 0);
-                    break;
-                }
-                case ActionType.Skew:
-                {
-                    csstween = new CssTween("transform", `skew(${endx}deg, ${endy}deg)`, 0);
-                    break;
-                }
-                default:
-                {
-                    // $.Msg("unsupported tween type:" + ActionType[this.actionType]);
-                }
-            }
-            if (csstween)
-            {
-                csstween.ease = getEasePanorama(this.easeType);
-                csstween.delay = this.delay;
-                csstween.duration = this.duration;
-                csstween.tweener = this;
-                target.appendTween(csstween);
-                this.cssTweener = csstween;
-            }
-        }
-    }
-}
-
-export class CssTween
-{
-    public propType : string;
-    public propValue : string;
-    public ease : string;
-
-    public delay : number;
-    public priority : number;
-    public endTime : number;
-    public startTime : number;
-    public hasStarted: boolean;
-    public tweener : GTweener;
-    
-    public constructor(v1:string, v2:string, v6:number)
-    {
-        this.propType = v1;
-        this.propValue = v2;
-        this.priority = v6;
-        this.delay = 0;
-        this.hasStarted = false;
-    }
-
-    public set duration(value: number)
-    {
-        let currentTime = Game.Time();
-        this.endTime = currentTime + value + this.delay;
-        this.startTime = currentTime + this.delay;
-    };
-    public get duration(): number
-    {
-        return this.endTime - this.startTime;
-    }
-
-    public tostring(): string
-    {
-        return `propType = ${this.propType}\npropValue = ${this.propValue}\ndelay = ${this.delay}\nduration = ${this.duration}\n`;
-    }
-
-    public kill(): void
-    {
-        this.tweener.kill(true);
-        TweenManager.returnTween(this.tweener);
-        this.tweener = null;
     }
 }

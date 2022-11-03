@@ -16,6 +16,16 @@ const OPTION_IGNORE_DISPLAY_CONTROLLER: number = 1;
 const OPTION_AUTO_STOP_DISABLED: number = 2;
 const OPTION_AUTO_STOP_AT_END: number = 4;
 
+export const NativeActionType = new Set<ActionType>([
+    ActionType.XY,
+    ActionType.Size,
+    ActionType.Scale,
+    ActionType.Alpha,
+    ActionType.Rotation,
+    ActionType.Color,
+    ActionType.Skew
+]);
+
 export class Transition {
     public name: string;
 
@@ -146,7 +156,7 @@ export class Transition {
 
         if (cnt > 0)
         {
-            if (UIConfig.useNativeTransition == true)
+            if (UIConfig.useNativeTransition && this.checkCanUseNative())
             {
                 this._playing = false;
                 this.stopAnimation();
@@ -171,6 +181,19 @@ export class Transition {
                     GTween.delayedCall(delay).setTarget(this).onComplete(this.onDelayedPlay, this);
             }
         }
+    }
+
+    protected checkCanUseNative(): boolean
+    {
+        var cnt: number = this._items.length;
+        for (var i: number = 0; i < cnt; i++) {
+            var item: Item = this._items[i];
+            if (!NativeActionType.has(item.type))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     protected stopAnimation(className ?: string): void
@@ -689,8 +712,7 @@ export class Transition {
                     .setTarget(item)
                     .onStart(this.onTweenStart, this)
                     .onUpdate(this.onTweenUpdate, this)
-                    .onComplete(this.onTweenComplete, this)
-                    .setActionType(item.type);
+                    .onComplete(this.onTweenComplete, this);
 
                 if (this._endTime >= 0)
                     item.tweener.setBreakpoint(this._endTime - time);
@@ -1094,8 +1116,10 @@ export class Transition {
                         else
                             value.audioClip = value.sound;
                     }
-                    // if (value.audioClip)
-                    //     GRoot.playOneShotSound(value.audioClip, value.volume);
+                    if (value.audioClip)
+                    {
+                        Game.EmitSound(value.audioClip);
+                    }
                 }
                 break;
 

@@ -1,8 +1,5 @@
 import { UIElement } from "./UIElement";
 import { Color } from "../math/Color";
-import { convertToHtmlColor } from "../utils/ToolSet";
-import { CssTween } from "../tween/GTweener";
-import { ActionType } from "../FairyGUI";
 
 export class Shape extends UIElement {
     public init() {

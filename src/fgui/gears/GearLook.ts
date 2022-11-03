@@ -1,4 +1,3 @@
-import { ActionType } from "../FairyGUI";
 import { GTween } from "../tween/GTween";
 import { GTweener } from "../tween/GTweener";
 import { ByteBuffer } from "../utils/ByteBuffer";
@@ -57,7 +56,7 @@ export class GearLook extends GearBase {
                 if (this._owner.checkGearController(0, this._controller))
                     this._tweenConfig._displayLockToken = this._owner.addDisplayLock();
 
-                this._tweenConfig._tweener = GTween.to2(this._owner.alpha, this._owner.rotation, gv.alpha, gv.rotation, this._tweenConfig.duration, ActionType.Alpha)
+                this._tweenConfig._tweener = GTween.to2(this._owner.alpha, this._owner.rotation, gv.alpha, gv.rotation, this._tweenConfig.duration)
                     .setDelay(this._tweenConfig.delay)
                     .setEase(this._tweenConfig.easeType)
                     .setUserData((a ? 1 : 0) + (b ? 2 : 0))

@@ -3,8 +3,6 @@ import { ObjectPropID } from "./FieldTypes";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { Shape } from "../core/Shape";
 import { UIElement } from "../core/UIElement";
-import { ActionType } from "../FairyGUI";
-import { CssTween } from "../tween/GTweener";
 
 export class GGraph extends GObject {
     protected _element: Shape;
@@ -77,23 +75,6 @@ export class GGraph extends GObject {
             this.color = value;
         else
             super.setProp(index, value);
-    }
-
-    public onTweenStart(tween: CssTween): void
-    {
-        switch(tween.tweener.actionType)
-        {
-            case ActionType.Color:
-            {
-                this.color = tween.tweener.startValue.color;
-                break;
-            }
-            default:
-            {
-                super.onTweenStart(tween);
-                break;
-            }
-        }
     }
 
     public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {

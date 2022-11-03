@@ -180,7 +180,7 @@ export class UIElement extends DotaPanel {
         this._flipY = b;
 
         if (this._flipX || this._flipY)
-            this.nativePanel.style.transformOrigin = "%50 %50";
+            this.nativePanel.style.transformOrigin = "50% 50%";
         else
             this.nativePanel.style.transformOrigin = (this._pivot.x * 100) + "% " + (this._pivot.y * 100) + "%";
     }
