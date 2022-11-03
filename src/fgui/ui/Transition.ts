@@ -163,7 +163,13 @@ export class Transition {
                 let runningSet:Set<string> = new Set;
                 for (var i: number = 0; i < cnt; i++) {
                     var item: Item = this._items[i];
-                    let transitionClassName = `${item.fileName}_${item.name}_${item.targetId}`;
+                    let transitionClassName = "";
+                    if (item.targetId == "") {
+                        //是组件本身
+                        transitionClassName = `${item.fileName}_${item.name}___root__`;
+                    } else {
+                        transitionClassName = `${item.fileName}_${item.name}_${item.targetId}`;
+                    }
                     if (!runningSet.has(transitionClassName))
                     {
                         runningSet.add(transitionClassName);

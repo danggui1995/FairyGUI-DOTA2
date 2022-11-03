@@ -23,7 +23,7 @@ gulp.task("rollup", async function() {
         input: "build/FairyGUI.js",
         output: {
             file: 'FairyGUI.js',
-            format: 'esm',
+            format: 'umd',
             extend: true,
             name: 'fgui'
         },
