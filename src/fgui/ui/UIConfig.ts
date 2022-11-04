@@ -74,7 +74,8 @@ export class UIConfig {
 
     public static scaleLevel: number = 0;
 
-    public static ouputDir : string = "file://{resources}/scripts/custom_game/fgui/";
+    //resource path
+    public static ouputDir : string = "file://{resources}/images/custom_game/fgui/";
 
     public static GetItemUrl(pkgName : string, fileName : string) : string{
         return UIConfig.ouputDir + fileName.replace(pkgName, pkgName + "/");
