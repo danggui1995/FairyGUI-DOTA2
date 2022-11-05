@@ -5,7 +5,6 @@ import { GObject } from "./GObject";
 import { GTextField } from "./GTextField";
 import { UIConfig } from "./UIConfig";
 import { ByteBuffer } from "../utils/ByteBuffer";
-import { Timers } from "../utils/Timers";
 import { GTextInput } from "./GTextInput";
 
 export type ButtonStatus = "up" | "down" | "over" | "selectedOver" | "disabled" | "selectedDisabled";
@@ -227,15 +226,8 @@ export class GButton extends GComponent {
     public fireClick(downEffect?: boolean, clickCall?: boolean): void {
         downEffect = downEffect || false;
         if (downEffect && this._mode == ButtonMode.Common) {
-            this.element.nativePanel.style.transitionProperty = "transform";
-            this.element.nativePanel.style.transitionDuration = "0.1s";
-            this.setState("down");
-            // Timers.add(100, 1, this.setState, this, "down");
-            Timers.add(200, 1, this.setState, this, () => {
-                this.setState("up");
-                if (clickCall)
-                    this.emit.call(this, "click");
-            });
+            if (clickCall)
+                this.emit.call(this, "click");
         }
     }
 
@@ -244,25 +236,29 @@ export class GButton extends GComponent {
             this._buttonController.selectedPage = val;
 
         if (this._downEffect == 1) {
+            this.AddClass(`FGUI_Button_Animation_1`);
             var cnt: number = this.numChildren;
             if (val == "down" || val == "selectedOver" || val == "selectedDisabled") {
-                var p: number = this._downEffectValue * 255;
-                var r: number = (p << 16) + (p << 8) + p;
                 for (var i: number = 0; i < cnt; i++) {
                     var obj: GObject = this.getChildAt(i);
                     if (!(obj instanceof GTextField))
-                        obj.setProp(ObjectPropID.Color, r);
+                    {
+                        obj.element.nativePanel.style.brightness = `${this._downEffectValue}`;
+                    }
                 }
             }
             else {
                 for (i = 0; i < cnt; i++) {
                     obj = this.getChildAt(i);
                     if (!(obj instanceof GTextField))
-                        obj.setProp(ObjectPropID.Color, 0xFFFFFF);
+                    {
+                        obj.element.nativePanel.style.brightness = `1`;
+                    }
                 }
             }
         }
         else if (this._downEffect == 2) {
+            this.AddClass(`FGUI_Button_Animation_2`);
             if (val == "down" || val == "selectedOver" || val == "selectedDisabled") {
                 if (!this._downScaled) {
                     this.setScale(this.scaleX * this._downEffectValue, this.scaleY * this._downEffectValue);

@@ -219,7 +219,7 @@ export class UIElement extends DotaPanel {
     public setScale(xv: number, yv: number) {
         if (this._scale.x != xv || this._scale.y != yv) {
             this._scale.set(xv, yv);
-            this.nativePanel.style.preTransformScale2d = `${xv}, ${yv}`;
+            this.nativePanel.style.transform = `scale3d(${xv}, ${yv}, 1)`;
         }
     }
 

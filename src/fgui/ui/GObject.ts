@@ -135,7 +135,8 @@ export class GObject extends EventDispatcher {
     public panelName : string;
     public touchAction : 0 | 1;
     public tweener : GTweener;
-    private _registedEvents : Map<string, any>;
+    private _registedEvents : Map<string, any[]>;
+    private _registedHandlers: Map<string, any>;
     
     constructor(name ?: string) {
         super();
@@ -152,7 +153,8 @@ export class GObject extends EventDispatcher {
         this.touchAction = 0;
         this._updateRegisted = false;
         this._pivotStr = "0% 0%";
-        this._registedEvents = new Map<string, any>();
+        this._registedEvents = new Map;
+        this._registedHandlers = new Map;
     }
 
     public get id(): string {
@@ -1027,18 +1029,34 @@ export class GObject extends EventDispatcher {
     {
         if (!this._registedEvents.has(evt))
         {
-            var handler = $.RegisterEventHandler(evt, this.GetNativePanel(), func);
-            this._registedEvents.set(evt, handler);
+            this._registedEvents.set(evt, [func]);
+
+            var handler = $.RegisterEventHandler(evt, this.GetNativePanel(), (arg1:any, arg2:any, arg3:any)=>{
+                var funcArray = this._registedEvents.get(evt);
+                funcArray.forEach(callback => {
+                    callback(arg1, arg2, arg3);
+                });
+            });
+            this._registedHandlers.set(evt, handler);
+        }
+        else
+        {
+            var array = this._registedEvents.get(evt);
+            if (array.indexOf(func) == -1)
+            {
+                array.push(func);
+            }
         }
     }
 
     public UnregisterEventHandler(evt: string, panel: PanelBase):void
     {
-        let handler = this._registedEvents.get(evt);
+        let handler = this._registedHandlers.get(evt);
         if (handler)
         {
             $.UnregisterEventHandler(evt, panel, handler);
             this._registedEvents.delete(evt);
+            this._registedHandlers.delete(evt);
         }
     }
 
@@ -1196,6 +1214,7 @@ export class GObject extends EventDispatcher {
         {
             // this._element.nativePanel.RemoveClass(clsName);
             // this._element.nativePanel.AddClass(clsName);
+            // this._element.nativePanel.SetHasClass(clsName, false);
             this._element.nativePanel.SetHasClass(clsName, true);
         }
     }

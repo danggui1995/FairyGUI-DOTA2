@@ -52,6 +52,8 @@ export class Transition {
     private _onAnimationStartCallback : any;
     private _runningAnimation: Set<string>;
 
+    public autoReset: boolean;
+
     constructor(owner: GComponent) {
         this._owner = owner;
         this._items = new Array<Item>();
@@ -61,13 +63,14 @@ export class Transition {
         this._timeScale = 1;
         this._startTime = 0;
         this._endTime = 0;
+        this.autoReset = true;
 
         this._runningAnimation = new Set;
-        this._onAnimationEndCallback = (_: any, className: string)=>{
-            this.onAnimationEnd(className);
+        this._onAnimationEndCallback = (p: Panel, kName: string)=>{
+            this.onAnimationEnd(p, kName);
         };
-        this._onAnimationStartCallback = (_: any, className: string)=>{
-            this.onAnimationStart(className);
+        this._onAnimationStartCallback = (p: Panel, kName: string)=>{
+            this.onAnimationStart(p, kName);
         };
     }
 
@@ -158,23 +161,21 @@ export class Transition {
         {
             if (UIConfig.useNativeTransition && this.checkCanUseNative())
             {
-                this._playing = false;
+                this._playing = true;
                 this.stopAnimation();
-                let runningSet:Set<string> = new Set;
+                if (this.autoReset == true)
+                {
+                    this.applyAnimationProperties(true);
+                }
                 for (var i: number = 0; i < cnt; i++) {
                     var item: Item = this._items[i];
-                    let transitionClassName = "";
-                    if (item.targetId == "") {
-                        //是组件本身
-                        transitionClassName = `${item.fileName}_${item.name}___root__`;
-                    } else {
-                        transitionClassName = `${item.fileName}_${item.name}_${item.targetId}`;
-                    }
-                    if (!runningSet.has(transitionClassName))
+                    var transitionClassName: string = this.getTransitionClassName(item);
+                    if (!this._runningAnimation.has(transitionClassName))
                     {
-                        runningSet.add(transitionClassName);
+                        this._runningAnimation.add(transitionClassName);
+                        
                         item.target.AddClass(transitionClassName);
-                        item.target.RegisterEventHandler('AnimationStart', this._onAnimationStartCallback);
+                        // item.target.RegisterEventHandler('AnimationStart', this._onAnimationStartCallback);
                         item.target.RegisterEventHandler('AnimationEnd', this._onAnimationEndCallback);
                     }
                 }
@@ -187,6 +188,18 @@ export class Transition {
                     GTween.delayedCall(delay).setTarget(this).onComplete(this.onDelayedPlay, this);
             }
         }
+    }
+
+    protected getTransitionClassName(item: Item): string
+    {
+        let transitionClassName = "";
+        if (item.targetId == "") {
+            //是组件本身
+            transitionClassName = `${item.fileName}_${item.name}___root__`;
+        } else {
+            transitionClassName = `${item.fileName}_${item.name}_${item.targetId}`;
+        }
+        return transitionClassName;
     }
 
     protected checkCanUseNative(): boolean
@@ -207,27 +220,39 @@ export class Transition {
         let cnt = this._items.length;
         for (var i: number = 0; i < cnt; i++) {
             var item: Item = this._items[i];
-            let transitionClassName = `${item.fileName}_${item.name}_${item.targetId}`;
+            let transitionClassName = this.getTransitionClassName(item);
             if (!className || className == transitionClassName)
             {
+                item.target.RemoveClass(transitionClassName);
                 if (this._runningAnimation.has(transitionClassName))
                 {
-                    item.target.RemoveClass(transitionClassName);
                     this._runningAnimation.delete(transitionClassName);
                 }
             }
         }
+        if (this.autoReset == true)
+        {
+            this.applyAnimationProperties(false);
+        }
     }
 
-    protected onAnimationEnd(className: string): void
+    protected onAnimationEnd(p: Panel, kName: string): void
     {
+        var className = kName.substring(0, kName.length - 2);
         if (this._runningAnimation.has(className))
         {
             this._runningAnimation.delete(className);
-            this._playing = true;
         }
+
+        p.SetHasClass(className, false);
+        
         if (this._runningAnimation.size == 0 && this._playing == true)
         {
+            if (this.autoReset == true)
+            {
+                this.applyAnimationProperties(false);
+            }
+            
             this._playing = false;
             if (this._onComplete)
             {
@@ -238,10 +263,58 @@ export class Transition {
         }
     }
 
-    protected onAnimationStart(className: string): void
+    protected doApplyTweenValues(i: number, runTypeMap: Set<ActionType>, isFirst : boolean): void
     {
-        this._runningAnimation.add(className);
-        this._playing = true;
+        var item: Item = this._items[i];
+        if (runTypeMap.has(item.type))
+        {
+            return;
+        }
+        runTypeMap.add(item.type);
+
+        if (item.tweenConfig)
+        {
+            var endValue = (isFirst == this._reversed) ? item.tweenConfig.endValue : item.tweenConfig.startValue;
+            item.value.f1 = endValue.f1;
+            item.value.f2 = endValue.f2;
+        }
+        item.value.b1 = true;
+        item.value.b2 = true;
+
+        this.applyValue(item);
+    }
+
+    protected applyAnimationProperties(isFirst: boolean): void
+    {   
+        let cnt = this._items.length;
+        var runTypeMap: Set<ActionType> = new Set;
+        if (!isFirst)
+        {
+            for (var i: number = cnt - 1; i >= 0; i--) {
+                this.doApplyTweenValues(i, runTypeMap, isFirst);
+            }
+        }
+        else
+        {
+            for (var i: number = 0; i < cnt; i++) {
+                this.doApplyTweenValues(i, runTypeMap, isFirst);
+            }
+        }
+    }
+
+    public stayLastFrame(): void
+    {
+        this.applyAnimationProperties(false);
+    }
+
+    public backToFirstFrame(): void
+    {
+        this.applyAnimationProperties(true)
+    }
+
+    protected onAnimationStart(p: Panel, kName: string): void
+    {
+        //这里会监听到其他的事件，尽量不用
     }
 
     public stop(setToComplete?: boolean, processCallback?: boolean): void {
@@ -1021,6 +1094,11 @@ export class Transition {
     }
 
     private applyValue(item: Item): void {
+        if (!item.target)
+        {
+            $.Msg("Error: no target in transition, please call play() first");
+            return;
+        }
         item.target._gearLocked = true;
         var value: TValue = item.value;
 
