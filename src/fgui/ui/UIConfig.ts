@@ -81,7 +81,7 @@ export class UIConfig {
         return UIConfig.ouputDir + fileName.replace(pkgName, pkgName + "/");
     }
 
-    public static useNativeTransition : boolean = true;
+    public static useNativeTransition : boolean = false;
 }
 
 // let dpr = window.devicePixelRatio;

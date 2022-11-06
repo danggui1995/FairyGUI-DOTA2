@@ -5,7 +5,6 @@ import { PackageItem } from "./PackageItem";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { Vec2 } from "../math/Vec2";
 import { UIElement } from "../core/UIElement";
-import { UIConfig } from "./UIConfig";
 
 export class GImage extends GObject {
     protected _element: UIElement & Image;

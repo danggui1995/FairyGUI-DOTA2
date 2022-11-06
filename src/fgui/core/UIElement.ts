@@ -565,10 +565,14 @@ export class UIElement extends DotaPanel {
     }
     public set color(value: number) {
         if (this._color != value) {
+            this._color = value;
             if (this._type != 0)
             {
-                this._color = value;
                 this.nativePanel.style.backgroundColor = convertToHtmlColor(value);
+            }
+            else
+            {
+                this.nativePanel.style.washColor = convertToHtmlColor(value);
             }
         }
     }

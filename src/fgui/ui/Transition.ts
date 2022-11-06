@@ -52,6 +52,7 @@ export class Transition {
     private _onAnimationStartCallback : any;
     private _runningAnimation: Set<string>;
 
+    //是否播放后自动复位
     public autoReset: boolean;
 
     constructor(owner: GComponent) {
@@ -232,10 +233,10 @@ export class Transition {
                 }
             }
         }
-        if (this.autoReset == true)
-        {
-            this.applyAnimationProperties(false);
-        }
+        // if (this.autoReset == true)
+        // {
+        //     this.applyAnimationProperties(false);
+        // }
     }
 
     protected onAnimationEnd(p: Panel, kName: string): void
