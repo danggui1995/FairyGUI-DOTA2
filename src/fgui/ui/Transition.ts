@@ -63,7 +63,7 @@ export class Transition {
         this._timeScale = 1;
         this._startTime = 0;
         this._endTime = 0;
-        this.autoReset = true;
+        this.autoReset = false;
 
         this._runningAnimation = new Set;
         this._onAnimationEndCallback = (p: Panel, kName: string)=>{
@@ -161,12 +161,14 @@ export class Transition {
         {
             if (UIConfig.useNativeTransition && this.checkCanUseNative())
             {
+                this._ownerBaseX = this._owner.x;
+                this._ownerBaseY = this._owner.y;
                 this._playing = true;
                 this.stopAnimation();
-                if (this.autoReset == true)
-                {
-                    this.applyAnimationProperties(true);
-                }
+                // if (this.autoReset == true)
+                // {
+                //     this.applyAnimationProperties(true);
+                // }
                 for (var i: number = 0; i < cnt; i++) {
                     var item: Item = this._items[i];
                     var transitionClassName: string = this.getTransitionClassName(item);
@@ -244,14 +246,17 @@ export class Transition {
             this._runningAnimation.delete(className);
         }
 
-        p.SetHasClass(className, false);
+        if (this.autoReset == true)
+        {
+            p.SetHasClass(className, false);
+        }
         
         if (this._runningAnimation.size == 0 && this._playing == true)
         {
-            if (this.autoReset == true)
-            {
-                this.applyAnimationProperties(false);
-            }
+            // if (this.autoReset == true)
+            // {
+            //     this.applyAnimationProperties(false);
+            // }
             
             this._playing = false;
             if (this._onComplete)
