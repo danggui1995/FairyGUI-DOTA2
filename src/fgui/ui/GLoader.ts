@@ -245,7 +245,6 @@ export class GLoader extends GObject {
             return;
         }
 
-        this._content.nativePanel.RemoveClass("FGUI_OutScreen");
         this._checkSourceSizeTimer = null;
         this.sourceHeight  = Math.floor(this._content.nativePanel.contentheight / this._content.nativePanel.actualuiscale_y);
         this.sourceWidth = Math.floor(this._content.nativePanel.contentwidth / this._content.nativePanel.actualuiscale_x);
@@ -331,6 +330,8 @@ export class GLoader extends GObject {
             this._checkSourceSizeFunc(true);
             return;
         }
+
+        this._content.nativePanel.RemoveClass("FGUI_OutScreen");
 
         let cw = this.sourceWidth;
         let ch = this.sourceHeight;
