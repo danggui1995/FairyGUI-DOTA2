@@ -78,7 +78,7 @@ interface CDOTA_PanoramaScript_GameEvents {
      * GameEvents.SendCustomGameEventToServer<{ field: string }>("custom_event", { field: "foo" });
      */
     SendCustomGameEventToServer<T extends string | object>(
-        pEventName: (T extends string ? T : string) | keyof CustomGameEventDeclarations,
+        pEventName: (T extends string ? T : string) | keyof CustomGameEventDeclarations | number,
         eventData: GameEvents.InferCustomGameEventType<T, never>,
     ): void;
 
@@ -86,7 +86,7 @@ interface CDOTA_PanoramaScript_GameEvents {
      * Send a custom game event to the server, which will send it to all clients.
      */
     SendCustomGameEventToAllClients<T extends string | object>(
-        pEventName: (T extends string ? T : string) | keyof CustomGameEventDeclarations,
+        pEventName: (T extends string ? T : string) | keyof CustomGameEventDeclarations | number,
         eventData: GameEvents.InferCustomGameEventType<T, never>,
     ): void;
 
@@ -94,7 +94,7 @@ interface CDOTA_PanoramaScript_GameEvents {
      * Send a custom game event to the server, which will send it to all clients.
      */
     SendCustomGameEventToClient<T extends string | object>(
-        pEventName: (T extends string ? T : string) | keyof CustomGameEventDeclarations,
+        pEventName: (T extends string ? T : string) | keyof CustomGameEventDeclarations | number,
         playerIndex: PlayerID,
         eventData: GameEvents.InferCustomGameEventType<T, never>,
     ): void;
