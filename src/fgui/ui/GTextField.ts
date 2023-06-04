@@ -59,7 +59,6 @@ export class GTextField extends GObject {
         if (this._template)
             str = this.parseTemplate(str);
 
-        this._element.maxWidth = this.maxWidth;
         if (this._ubbEnabled)
             this._element.htmlText = defaultParser.parse(XMLUtils.encodeString(str));
         else
@@ -264,6 +263,7 @@ export class GTextField extends GObject {
         if (buffer.version >= 3)
             tf.strikethrough = buffer.readBool();
 
+        this._element.maxWidth = this.maxWidth;
         this._element.applyFormat();
     }
 

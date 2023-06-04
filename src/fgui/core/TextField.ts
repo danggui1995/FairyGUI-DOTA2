@@ -12,13 +12,11 @@ export class TextField extends UIElement {
     protected _singleLine: boolean;
     protected _html: boolean;
     protected _maxWidth: number = 0;
-    protected _updatingSize: boolean;
     protected _textSize: Vec2;
     protected _layoutStyleChanged: boolean = true;
     protected _label : LabelPanel;
     protected _container : Panel;
     protected _delayUpdateFunc : any;
-    protected _tmpChangWrapping : boolean = false;
     protected _delayUpdateTimer ?: ScheduleID;
 
     constructor() {
@@ -83,7 +81,9 @@ export class TextField extends UIElement {
             this._label.style.textShadow = arr.join(' ');
         }
         else
+        {
             this._label.style.boxShadow = null;
+        }
     }
 
     public get text(): string {
@@ -113,18 +113,6 @@ export class TextField extends UIElement {
     }
 
     private applyText(): void { 
-        this._updatingSize = true;
-        this._tmpChangWrapping = false;
-        if (this._autoSize == AutoSizeType.Both) {
-            this._label.style.width = null;
-
-            if (this._maxWidth > 0) {
-                this.updateWrapping();
-                this._tmpChangWrapping = true;
-            }
-        }
-
-        this._label.AddClass("FGUI_OutScreen");
         this._label.html = this._html;
         this._label.text = this.text;
 
@@ -142,11 +130,11 @@ export class TextField extends UIElement {
             this._delayUpdateTimer = $.Schedule(0.02, this._delayUpdateFunc);
             return;
         }
+
         var height = Math.floor(this._label.contentheight / this._label.actualuiscale_y);
         var width = Math.floor(this._label.contentwidth / this._label.actualuiscale_x);
-        this._label.RemoveClass("FGUI_OutScreen");
-        
         this._textSize.set(width, height);
+
         if (this._autoSize == AutoSizeType.Both) {
             if (this.$owner)
             {
@@ -159,14 +147,6 @@ export class TextField extends UIElement {
                 this.$owner.height = this._textSize.y;
             }
         }
-
-        if (this._tmpChangWrapping && this._contentRect.width > this._maxWidth) {
-            this._label.style.width = this._maxWidth + "px";
-            this.updateWrapping(true);
-        }
-
-        this._container.style.width = this._contentRect.width + "px";
-        this._updatingSize = false;
     }
 
     public get autoSize(): AutoSizeType {
@@ -212,6 +192,13 @@ export class TextField extends UIElement {
     public set maxWidth(value: number) {
         if (this._maxWidth != value) {
             this._maxWidth = value;
+
+            if (this._autoSize == AutoSizeType.Both) {
+                if (this._maxWidth > 0) {
+                    this._label.style.width = this._maxWidth + "px";
+                    this.updateWrapping(true);
+                }
+            }
         }
     }
 
