@@ -1,19 +1,19 @@
 # Basic
-关于FGUI的一切信息可以在官网找到。<BR>
-https://www.fairygui.com/<BR>
+This is a community transplant branch and has no interest relationship with the official company.<BR>
+You can obtain tutorials and FAQs in the <a href="https://www.fairygui.com/">official websit</a>.<BR>
 
 # Note
-1.Dota2平台的Web阉割了一些功能，会导致有些功能无法使用。<BR>
-2.由于dota2平台没有IO接口的特殊性，所有界面数据目前都保存在代码文件中在初始化的时候全部转化成ArrayBuffer。<BR>
+1.The Dota2 platform's web has removed some features, which may result in some functions being unusable.<BR>
+2.Due to the lack of IO interface specificity on the Dota2 platform, all interface data is currently saved in code files and converted to ArrayBuffer during initialization.<BR>
 
 # Advance
-1.所见即所得，不需要再额外编写xml和css文件，自动导出到TypeScript数据绑定，变量名和编辑器中一一对应，可直接使用。<BR>
-2.跨平台：使用fgui编辑器编写的所有界面，可以无缝迁移到其他各引擎。<BR>
-3.增加了文本的垂直方向对齐。<BR>
-4.修复一些富文本的原生bug。<BR>
-5.不用再针对不同的分辨率单独设计css，通过关联，可以省去dota2适配不同分辨率的繁琐操作。<BR>
-6.扩展dota2的原生组件：技能图标，物品图标，玩家头像，模型，特效等。<BR>
-7.新增自动切分九宫图的功能。2022年8月28日<BR>
+1.WYSIWYG. You don't need to write additional xml and css files. It is automatically exported to TypeScript data binding. The variable name corresponds to the editor one by one and can be used directly.<BR>
+2.Cross platform: All interfaces written using the fgui editor can be seamlessly migrated to other engines.<BR>
+3.Added support for vertical alignment of text.<BR>
+4.Fix some native bugs in rich text.<BR>
+5.There is no longer a need to design CSS separately for different resolutions. By association, the tedious operation of adapting Dota2 to different resolutions can be eliminated.<BR>
+6.Expand the native components of Dota2: skill icons, item icons, player avatars, models, special effects, etc.<BR>
+7.Add the function of automatic segmentation of Luoshu Square. <BR>
 
 
 # Powered By
